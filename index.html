@@ -1,45 +1,778 @@
 <!doctype html>
-<html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>瑪奇 Mobile｜S1 職業符文指南</title>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>瑪奇 Mobile｜S1 職業符文指南</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f3eb;color:#213c39;font:16px/1.65 "Atkinson Hyperlegible Next",system-ui,sans-serif}main{max-width:1040px;margin:auto;padding:clamp(20px,5vw,64px)}header{border-top:5px solid #40665d;padding-top:24px}h1,h2{font-family:Georgia,"Microsoft JhengHei",serif;letter-spacing:.04em}h1{font-size:clamp(26px,4vw,42px);margin:0}p{margin:.4em 0 1em}nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px;margin:24px 0}.family,article{background:#fffef9;border:1px solid #c8cfc1;border-radius:10px;padding:16px}.family h2{font-size:17px;margin:0 0 8px}button{font:inherit;color:inherit;background:transparent;border:1px solid #abbcb0;border-radius:6px;padding:5px 10px;margin:3px;cursor:pointer}button:hover,button[aria-pressed=true]{color:white;background:#295d50}button:focus-visible{outline:3px solid #bf8033}article{padding:clamp(14px,3vw,30px)}article h2{margin:0}table{border-collapse:collapse;width:100%;table-layout:fixed}th,td{border-bottom:1px solid #d9dfd3;padding:12px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}thead{background:#e7ede2}th:first-child{width:12%}a{color:#245f52}small{color:#496456}@media(max-width:580px){nav{grid-template-columns:1fr 1fr;gap:6px}.family{padding:8px}button{font-size:14px;padding:5px}table,tbody,tr,td,th{display:block}thead{display:none}tbody th:first-child{width:auto;background:#e7ede2}td:before{content:attr(data-tier);display:inline-block;font-weight:bold;margin-right:.6em}}
-</style><main><header><h1>瑪奇 Mobile 符文指南</h1><p>韓服 Season 1 · 選擇職業查看配裝，再點一次即可收合。</p></header><nav id="jobs" aria-label="依職系選擇職業"></nav><noscript>請啟用 JavaScript 以選擇職業。</noscript><article id="panel" hidden aria-live="polite"></article></main>
-<script src="runes.js"></script><script>
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #f5f3eb;
+    --surface: #fffef9;
+    --surface-head: #e7ede2;
+    --border: #c8cfc1;
+    --border-soft: #dfe4d9;
+    --text: #213c39;
+    --muted: #526b62;
+    --accent: #295d50;
+    --accent-top: #40665d;
+    --accent-soft: #edf4ef;
+    --focus: #bf8033;
+    --t0-bg: #eef5e8;
+    --t0-text: #1f533a;
+    --t1-bg: #eef3f5;
+    --t1-text: #275365;
+    --t2-bg: #f3f2ec;
+    --t2-text: #5f665f;
+    --defect-bg: #fdf0ed;
+    --defect-text: #9a2f20;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 "Atkinson Hyperlegible Next", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  main {
+    max-width: 1120px;
+    margin: auto;
+    padding: clamp(18px, 4.5vw, 52px);
+  }
+  header {
+    border-top: 5px solid var(--accent-top);
+    padding-top: 20px;
+  }
+  h1, h2 {
+    font-family: Georgia, "Noto Serif TC", "Microsoft JhengHei", serif;
+    letter-spacing: .04em;
+  }
+  h1 {
+    font-size: clamp(26px, 4vw, 40px);
+    margin: 0;
+  }
+  header p {
+    margin: .45em 0 0;
+    color: var(--muted);
+  }
+  nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 12px;
+    margin: 22px 0;
+  }
+  .family, article {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px 16px;
+  }
+  .family h2 {
+    font-size: 17px;
+    margin: 0 0 8px;
+  }
+  .family button {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid #abbcb0;
+    border-radius: 7px;
+    padding: 5px 11px;
+    margin: 3px;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .family button:hover,
+  .family button[aria-pressed="true"] {
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  button:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 1px;
+  }
+
+  article {
+    padding: clamp(16px, 3vw, 28px);
+  }
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px 16px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .panel-head h2 {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 28px);
+  }
+  .panel-meta {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .panel-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toggle-btn {
+    font: inherit;
+    font-size: 13.5px;
+    line-height: 1.3;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .toggle-btn:hover {
+    border-color: var(--accent);
+  }
+  .toggle-btn[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .hover-hint {
+    margin: 0 0 14px;
+    font-size: 14px;
+    color: var(--muted);
+    background: var(--accent-soft);
+    border: 1px solid #d5e3d9;
+    border-radius: 8px;
+    padding: 7px 12px;
+  }
+
+  /* 2×2 四象限：左上武器、右上徽章、左下飾品、右下防具 */
+  .quad-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .slot-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .slot-table {
+    border-collapse: collapse;
+    width: 100%;
+    height: 100%;
+    table-layout: fixed;
+  }
+  .slot-table thead th {
+    background: var(--surface-head);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 16px;
+    letter-spacing: .04em;
+  }
+  .slot-table thead th.corner {
+    width: 78px;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .slot-table tbody tr:not(:last-child) th,
+  .slot-table tbody tr:not(:last-child) td {
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .slot-table tbody th {
+    width: 78px;
+    padding: 11px 8px;
+    text-align: center;
+    vertical-align: top;
+    font-weight: 700;
+    border-right: 1px solid var(--border-soft);
+    background: #faf9f4;
+  }
+  .tier-badge {
+    display: inline-block;
+    min-width: 38px;
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: .03em;
+  }
+  .tier-0 { background: var(--t0-bg); color: var(--t0-text); }
+  .tier-1 { background: var(--t1-bg); color: var(--t1-text); }
+  .tier-2 { background: var(--t2-bg); color: var(--t2-text); }
+  .tier-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .slot-table tbody td {
+    padding: 11px 13px;
+    vertical-align: top;
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+  }
+  .empty-cell {
+    color: #96a39c;
+  }
+
+  /* 互動符文標籤 */
+  .rune-chip {
+    display: inline;
+    font: inherit;
+    font-weight: 600;
+    color: #184b40;
+    background: #edf5f0;
+    border: 1px solid #c3d8cb;
+    border-bottom: 2px dashed #5d8d7d;
+    border-radius: 5px;
+    padding: 1px 6px;
+    margin: 1px 1px;
+    cursor: help;
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .rune-chip:hover,
+  .rune-chip:focus-visible,
+  .rune-chip.is-active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    border-bottom-style: solid;
+  }
+  .rune-kr-inline {
+    font-size: 12.5px;
+    font-weight: 400;
+    opacity: .8;
+    margin-left: 3px;
+  }
+  .sep-slash {
+    color: #7c8e85;
+    font-weight: 600;
+    padding: 0 2px;
+  }
+  .sep-plus {
+    color: #9e6b24;
+    font-weight: 700;
+    padding: 0 1px;
+  }
+  .note-text {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .panel-foot {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .panel-foot p {
+    margin: 0;
+  }
+  a {
+    color: #245f52;
+    font-weight: 600;
+  }
+
+  /* 懸停效果浮窗 */
+  .rune-tooltip {
+    position: fixed;
+    z-index: 9999;
+    width: min(360px, calc(100vw - 24px));
+    background: #1b2f2c;
+    color: #f4f7f5;
+    border: 1px solid #3c5f57;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 12px 28px rgba(18, 34, 31, .28);
+    font-size: 14px;
+    line-height: 1.55;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  .rune-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .rune-tooltip.pinned {
+    pointer-events: auto;
+  }
+  .tt-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .tt-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .tt-kr {
+    font-size: 13px;
+    color: #b7cec6;
+    font-family: system-ui, sans-serif;
+  }
+  .tt-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  .tt-tag {
+    font-size: 11.5px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #2c4b45;
+    color: #dcebe5;
+  }
+  .tt-tag.is-draft {
+    background: #4f4125;
+    color: #f6dfaa;
+  }
+  .tt-tag.is-verified {
+    background: #224e3d;
+    color: #b8f0d3;
+  }
+  .tt-skill {
+    font-size: 13px;
+    color: #f5dc9f;
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+  .tt-effect {
+    margin: 0;
+    color: #f0f5f3;
+  }
+  .tt-defect {
+    margin: 7px 0 0;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: rgba(217, 83, 63, .22);
+    border-left: 3px solid #f07d6a;
+    color: #ffd5ce;
+    font-size: 13px;
+  }
+  .tt-note {
+    margin: 7px 0 0;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, .14);
+    color: #bfd3cc;
+    font-size: 12.5px;
+  }
+
+  @media (max-width: 780px) {
+    .quad-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 580px) {
+    nav {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .family {
+      padding: 10px;
+    }
+    .family button {
+      font-size: 14px;
+      padding: 4px 8px;
+      margin: 2px;
+    }
+    .slot-table thead th.corner,
+    .slot-table tbody th {
+      width: 64px;
+    }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>瑪奇 Mobile 符文指南</h1>
+    <p>韓服 Season 1 基準（台服 S1 對照用）· 選擇職業查看配裝，再點一次即可收合。</p>
+  </header>
+  <nav id="jobs" aria-label="依職系選擇職業"></nav>
+  <noscript>請啟用 JavaScript 以選擇職業。</noscript>
+  <article id="panel" hidden aria-live="polite"></article>
+</main>
+<div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
+
+<script src="runes.js"></script>
+<script>
 const families = {
-  戰士系:['戰士','大劍戰士','劍術士','騎士'],
-  法師系:['魔法師','火焰術士','冰結術士','電擊術士'],
-  弓手系:['弓箭手','長弓兵','弩弓手'],
-  盜賊系:['盜賊','雙劍士','格鬥家'],
-  治癒系:['治癒師','祭司','修道士','暗黑術士'],
-  吟遊系:['吟遊詩人','舞者','樂師']
+  戰士系: ['戰士', '大劍戰士', '劍術士', '騎士'],
+  法師系: ['魔法師', '火焰術士', '冰結術士', '電擊術士'],
+  弓手系: ['弓箭手', '長弓兵', '弩弓手'],
+  盜賊系: ['盜賊', '雙劍士', '格鬥家'],
+  治癒系: ['治癒師', '祭司', '修道士', '暗黑術士'],
+  吟遊系: ['吟遊詩人', '舞者', '樂師']
 };
-const tierLabels=['T0 主選','T1 次選','T2 備選'];
-const slots=['武器','徽章','防具','飾品'];
-const panel=document.querySelector('#panel');
-let selected=null;
-function add(parent,tag,text){const el=document.createElement(tag);el.textContent=text;parent.append(el);return el}
-function choose(button,job,family){
-  const close=selected===button;
-  if(selected)selected.setAttribute('aria-pressed','false');
-  selected=close?null:button;
-  panel.replaceChildren();panel.hidden=close;
-  if(close)return;
-  button.setAttribute('aria-pressed','true');
-  add(panel,'h2',job);
-  add(panel,'p',job==='騎士'?'韓服 S1 後期追加。配裝取自 2026/4/28 上線首週資料。':job==='暗黑術士'?'韓服 S1 開季後追加。以下為該職業實裝後的配裝。':'韓服 S1 玩家問卷 · 2025/12 至 2026/01');
-  const table=add(panel,'table','');
-  const head=table.createTHead().insertRow();
-  for(const label of ['部位',...tierLabels])add(head,'th',label).scope='col';
-  const body=table.createTBody();
-  runes[job].forEach((tiers,i)=>{
-    const row=body.insertRow();add(row,'th',slots[i]).scope='row';
-    tiers.forEach((value,j)=>{const td=add(row,'td',value||'—');td.dataset.tier=tierLabels[j]});
-  });
-  add(panel,'p','／ 表示擇一；飾品以三件組列出。空格表示缺少可核對的候選。分級為編者依韓服 S1 回覆整理，名稱保留韓文供比對。');
-  const link=add(panel,'a','查看韓服配裝來源 ↗');
-  link.href=job==='騎士'?'https://www.kakao.gg/games/mabinogi-mobile/guide-69f021f4f43b96476f0eb5c5':'https://theqoo.net/mabinogi/'+(['戰士系','法師系','弓手系'].includes(family)?'4087115736':'4087117159');
+
+// 四象限固定排版順序：左上武器(0)、右上徽章(1)、左下飾品(3)、右下防具(2)
+const quadrants = [
+  { index: 0, label: '武器' },
+  { index: 1, label: '徽章' },
+  { index: 3, label: '飾品' },
+  { index: 2, label: '防具' }
+];
+
+const tiers = [
+  { code: 'T0', sub: '主選', cls: 'tier-0' },
+  { code: 'T1', sub: '次選', cls: 'tier-1' },
+  { code: 'T2', sub: '備選', cls: 'tier-2' }
+];
+
+const panel = document.querySelector('#panel');
+const tooltip = document.querySelector('#rune-tooltip');
+
+let selectedBtn = null;
+let currentJob = null;
+let currentFamily = null;
+let showKoreanInline = false;
+let pinnedChip = null;
+let activeChip = null;
+
+// 預先建立由長到短排序的韓文符文鍵正規表達式，避免短詞搶先匹配
+const runeKeys = Object.keys(runeInfo).sort((a, b) => b.length - a.length);
+const runePattern = new RegExp(
+  '(' + runeKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')',
+  'g'
+);
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
 }
-for(const [family,names] of Object.entries(families)){
-  const group=add(document.querySelector('#jobs'),'section','');group.className='family';add(group,'h2',family);
-  for(const name of names){const b=add(group,'button',name);b.setAttribute('aria-controls','panel');b.setAttribute('aria-pressed','false');b.onclick=()=>choose(b,name,family)}
+
+// 將含有韓文符文鍵的文字渲染為「中文互動標籤 + 符號 + 註記」
+function renderCellContent(container, rawText) {
+  if (!rawText) {
+    container.append(el('span', 'empty-cell', '—'));
+    return;
+  }
+  const parts = rawText.split(runePattern);
+  for (const part of parts) {
+    if (!part) continue;
+    if (Object.prototype.hasOwnProperty.call(runeInfo, part)) {
+      const info = runeInfo[part];
+      const chip = el('button', 'rune-chip');
+      chip.type = 'button';
+      chip.dataset.rune = part;
+      chip.setAttribute('aria-describedby', 'rune-tooltip');
+      chip.append(document.createTextNode(info.zh));
+      if (showKoreanInline) {
+        chip.append(el('span', 'rune-kr-inline', `(${part})`));
+      }
+      container.append(chip);
+    } else {
+      // 將 ／ 與 ＋ 稍微標色，括號與箭頭維持清晰註記
+      const subParts = part.split(/(／|＋)/g);
+      for (const sp of subParts) {
+        if (!sp) continue;
+        if (sp === '／') {
+          container.append(el('span', 'sep-slash', ' ／ '));
+        } else if (sp === '＋') {
+          container.append(el('span', 'sep-plus', '＋'));
+        } else {
+          container.append(el('span', 'note-text', sp));
+        }
+      }
+    }
+  }
 }
-</script></html>
+
+function getJobMeta(job) {
+  if (job === '騎士') {
+    return '韓服 S1 後期追加（2026/04/28 上線）· 已依後期 S1 資料覆核徽章與四部位配裝，台服開放進度請對照公告。';
+  }
+  if (job === '暗黑術士') {
+    return '韓服 S1 開季後追加 · 以下為實裝後玩家問卷整理，台服開放進度請對照官方公告。';
+  }
+  if (job === '舞者') {
+    return '韓服 S1 玩家問卷（2025/12–2026/01）· 已將同組技能改造併回 T0 並補上舊版過渡對照。';
+  }
+  return '韓服 S1 玩家問卷（2025/12–2026/01）與 S1 攻略覆核。';
+}
+
+function renderPanel(job, family) {
+  hideTooltip(true);
+  panel.replaceChildren();
+
+  const head = el('div', 'panel-head');
+  const titleWrap = el('div');
+  titleWrap.append(el('h2', '', job));
+  titleWrap.append(el('p', 'panel-meta', getJobMeta(job)));
+
+  const tools = el('div', 'panel-tools');
+  const krToggle = el('button', 'toggle-btn', '並排顯示韓文原名');
+  krToggle.type = 'button';
+  krToggle.setAttribute('aria-pressed', String(showKoreanInline));
+  krToggle.onclick = () => {
+    showKoreanInline = !showKoreanInline;
+    renderPanel(currentJob, currentFamily);
+  };
+  tools.append(krToggle);
+
+  head.append(titleWrap, tools);
+  panel.append(head);
+
+  panel.append(
+    el(
+      'p',
+      'hover-hint',
+      '提示：滑鼠移至（手機可點擊）任一符文名稱，即可查看詳細中文效果、對應技能與韓文原名，方便直接比對台服遊戲圖鑑。'
+    )
+  );
+
+  const grid = el('div', 'quad-grid');
+  const jobData = runes[job];
+
+  for (const q of quadrants) {
+    const card = el('section', 'slot-card');
+    card.setAttribute('aria-label', `${job} ${q.label}符文`);
+
+    const table = el('table', 'slot-table');
+    const thead = table.createTHead();
+    const hRow = thead.insertRow();
+    const corner = el('th', 'corner', '');
+    corner.scope = 'col';
+    const slotTh = el('th', '', q.label);
+    slotTh.scope = 'col';
+    hRow.append(corner, slotTh);
+
+    const tbody = table.createTBody();
+    const slotTiers = jobData[q.index];
+    tiers.forEach((tier, tIdx) => {
+      const row = tbody.insertRow();
+      const th = el('th');
+      th.scope = 'row';
+      th.append(el('span', `tier-badge ${tier.cls}`, tier.code));
+      th.append(el('span', 'tier-sub', tier.sub));
+
+      const td = el('td');
+      renderCellContent(td, slotTiers[tIdx]);
+
+      row.append(th, td);
+    });
+
+    card.append(table);
+    grid.append(card);
+  }
+  panel.append(grid);
+
+  const foot = el('div', 'panel-foot');
+  foot.append(
+    el(
+      'p',
+      '',
+      '／ 表示擇一；＋ 表示飾品三件組；「—」表示缺少可核對候選。譯名標註為社群常用譯名或暫譯，請以懸停效果核對台服圖鑑。'
+    )
+  );
+  const link = el('a', '', '查看韓服配裝來源 ↗');
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.href =
+    job === '騎士'
+      ? 'https://www.kakao.gg/games/mabinogi-mobile/guide-69f021f4f43b96476f0eb5c5'
+      : 'https://theqoo.net/mabinogi/' +
+        (['戰士系', '法師系', '弓手系'].includes(family) ? '4087115736' : '4087117159');
+  foot.append(link);
+  panel.append(foot);
+}
+
+function choose(button, job, family) {
+  const close = selectedBtn === button;
+  if (selectedBtn) selectedBtn.setAttribute('aria-pressed', 'false');
+  selectedBtn = close ? null : button;
+  currentJob = close ? null : job;
+  currentFamily = close ? null : family;
+  panel.hidden = close;
+  if (close) {
+    hideTooltip(true);
+    panel.replaceChildren();
+    return;
+  }
+  button.setAttribute('aria-pressed', 'true');
+  renderPanel(job, family);
+}
+
+// ===== 浮動效果提示窗 =====
+function fillTooltip(key) {
+  const info = runeInfo[key];
+  if (!info) return false;
+
+  tooltip.replaceChildren();
+
+  const head = el('div', 'tt-head');
+  head.append(el('span', 'tt-title', info.zh));
+  head.append(el('span', 'tt-kr', key));
+  tooltip.append(head);
+
+  const tags = el('div', 'tt-tags');
+  tags.append(el('span', 'tt-tag', info.slot));
+  if (info.tierTag) tags.append(el('span', 'tt-tag', info.tierTag));
+  if (info.job) tags.append(el('span', 'tt-tag', info.job));
+  const statusCls = info.status === '社群譯名' ? 'tt-tag is-verified' : 'tt-tag is-draft';
+  tags.append(el('span', statusCls, info.status === '社群譯名' ? '社群常用譯名' : '暫譯・以效果對照'));
+  tooltip.append(tags);
+
+  if (info.skill) {
+    tooltip.append(el('p', 'tt-skill', `對應技能：${info.skill}`));
+  }
+
+  tooltip.append(el('p', 'tt-effect', info.effect));
+
+  if (info.defect) {
+    tooltip.append(el('p', 'tt-defect', `缺陷副作用：${info.defect}`));
+  }
+  if (info.note) {
+    tooltip.append(el('p', 'tt-note', info.note));
+  }
+  return true;
+}
+
+function positionTooltip(target) {
+  const rect = target.getBoundingClientRect();
+  const pad = 12;
+  const gap = 8;
+
+  // 先暫時顯示以量測真實高度與寬度
+  tooltip.style.left = '0px';
+  tooltip.style.top = '0px';
+  tooltip.hidden = false;
+  const ttRect = tooltip.getBoundingClientRect();
+
+  let left = rect.left + rect.width / 2 - ttRect.width / 2;
+  left = Math.max(pad, Math.min(left, window.innerWidth - ttRect.width - pad));
+
+  let top = rect.top - ttRect.height - gap;
+  if (top < pad) {
+    top = rect.bottom + gap;
+  }
+  if (top + ttRect.height > window.innerHeight - pad) {
+    top = Math.max(pad, window.innerHeight - ttRect.height - pad);
+  }
+
+  tooltip.style.left = `${Math.round(left)}px`;
+  tooltip.style.top = `${Math.round(top)}px`;
+}
+
+function showTooltip(chip, pin = false) {
+  const key = chip.dataset.rune;
+  if (!fillTooltip(key)) return;
+  if (activeChip && activeChip !== chip) activeChip.classList.remove('is-active');
+  activeChip = chip;
+  chip.classList.add('is-active');
+  if (pin) {
+    pinnedChip = chip;
+    tooltip.classList.add('pinned');
+  } else if (!pinnedChip) {
+    tooltip.classList.remove('pinned');
+  }
+  positionTooltip(chip);
+  tooltip.classList.add('visible');
+}
+
+function hideTooltip(force = false) {
+  if (!force && pinnedChip) return;
+  pinnedChip = null;
+  if (activeChip) {
+    activeChip.classList.remove('is-active');
+    activeChip = null;
+  }
+  tooltip.classList.remove('visible', 'pinned');
+  tooltip.hidden = true;
+}
+
+// 事件委派處理所有符文標籤的滑鼠懸停、鍵盤聚焦與點擊鎖定
+panel.addEventListener('pointerenter', (e) => {
+  if (!e.target.matches('.rune-chip') || e.pointerType === 'touch') return;
+  if (!pinnedChip) showTooltip(e.target, false);
+}, true);
+
+panel.addEventListener('pointerleave', (e) => {
+  if (!e.target.matches('.rune-chip') || e.pointerType === 'touch') return;
+  if (!pinnedChip) hideTooltip(false);
+}, true);
+
+panel.addEventListener('focusin', (e) => {
+  const chip = e.target.closest('.rune-chip');
+  if (!chip) return;
+  if (!pinnedChip) showTooltip(chip, false);
+});
+
+panel.addEventListener('focusout', (e) => {
+  const chip = e.target.closest('.rune-chip');
+  if (!chip) return;
+  if (!pinnedChip) hideTooltip(false);
+});
+
+panel.addEventListener('click', (e) => {
+  const chip = e.target.closest('.rune-chip');
+  if (!chip) return;
+  e.stopPropagation();
+  if (pinnedChip === chip) {
+    hideTooltip(true);
+  } else {
+    showTooltip(chip, true);
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (pinnedChip && !tooltip.contains(e.target) && !e.target.closest('.rune-chip')) {
+    hideTooltip(true);
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideTooltip(true);
+});
+
+window.addEventListener('scroll', () => {
+  if (activeChip && !tooltip.hidden) positionTooltip(activeChip);
+}, true);
+
+window.addEventListener('resize', () => {
+  if (activeChip && !tooltip.hidden) positionTooltip(activeChip);
+});
+
+// 建立六職系選單
+const nav = document.querySelector('#jobs');
+for (const [family, names] of Object.entries(families)) {
+  const group = el('section', 'family');
+  group.append(el('h2', '', family));
+  for (const name of names) {
+    const b = el('button', '', name);
+    b.type = 'button';
+    b.setAttribute('aria-controls', 'panel');
+    b.setAttribute('aria-pressed', 'false');
+    b.onclick = () => choose(b, name, family);
+    group.append(b);
+  }
+  nav.append(group);
+}
+</script>
+</body>
+</html>
