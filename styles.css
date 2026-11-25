@@ -850,6 +850,149 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   font-variant-numeric: tabular-nums;
 }
 
+/* ===== 計算機卡片與 KPI（Phase 3） ===== */
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.calc-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.calc-card h3 { margin: 0; font-size: 17.5px; }
+.calc-card-sub { margin: -6px 0 0; font-size: 13.5px; color: var(--muted); }
+.calc-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+.calc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.calc-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.calc-field input,
+.calc-field select {
+  width: 100%;
+  font: 14.5px/1.4 var(--font-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background-color: var(--surface-sub);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 10px;
+}
+.calc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+.calc-kpi {
+  background: var(--surface-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.calc-kpi.is-accent {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+.calc-kpi-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.calc-kpi-val { font-size: 18px; font-variant-numeric: tabular-nums; color: var(--text); }
+.calc-kpi.is-accent .calc-kpi-val { color: var(--accent); }
+.calc-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.calc-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  background: var(--surface-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: 7px;
+  font-size: 13.5px;
+}
+.calc-note {
+  margin: auto 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ===== 版本未來視時間軸（Phase 3） ===== */
+.roadmap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.roadmap-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.roadmap-card.is-released { border-left-color: var(--live-border); }
+.roadmap-card.is-current {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+.roadmap-card.is-upcoming { border-left-color: var(--gold); }
+.rm-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-bottom: 6px;
+}
+.rm-dates {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.rm-title {
+  margin: 0 0 6px;
+  font-size: 16.5px;
+}
+.rm-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.rm-list li + li { margin-top: 3px; }
+.roadmap-section-title {
+  margin: 0 0 10px;
+  font-size: 19px;
+}
+.two-col-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
 /* ===== 即時排程儀表板 ===== */
 .clock-banner {
   display: flex;
@@ -1089,7 +1232,7 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
 }
 
 @media (max-width: 860px) {
-  .schedule-split { grid-template-columns: 1fr; }
+  .schedule-split, .calc-grid, .two-col-cards { grid-template-columns: 1fr; }
   nav.jobs-nav { grid-template-columns: 1fr; }
 }
 @media (max-width: 780px) {

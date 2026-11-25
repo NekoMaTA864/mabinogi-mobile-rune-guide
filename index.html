@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-7">
+<link rel="stylesheet" href="styles.css?v=20261126-8">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -24,7 +24,7 @@
     <div class="header-top">
       <div>
         <h1>瑪奇 Mobile｜多功能工具站</h1>
-        <p class="header-desc">免登入純功能查詢站，整合台北時間即時排程、S1／S0 全職業符文指南與 10 格試配、以物易物雙向快查與中文社群工具箱。</p>
+        <p class="header-desc">免登入純功能查詢站，整合台北時間即時排程、S1／S0 全職業符文與 10 格試配、以物易物與計算機、台韓版本未來視與中文社群工具箱。</p>
       </div>
       <button id="theme-toggle" class="tool-btn" type="button" aria-pressed="false">深色模式</button>
     </div>
@@ -36,8 +36,11 @@
       <button class="primary-tab" role="tab" data-primary="runes" aria-selected="false" type="button">
         符文中心 <span class="tab-pill">S1／S0</span>
       </button>
-      <button class="primary-tab" role="tab" data-primary="barter" aria-selected="false" type="button">
-        以物易物 <span class="tab-pill">雙向快查</span>
+      <button class="primary-tab" role="tab" data-primary="economy" aria-selected="false" type="button">
+        物資與計算 <span class="tab-pill">3 工具</span>
+      </button>
+      <button class="primary-tab" role="tab" data-primary="roadmap" aria-selected="false" type="button">
+        版本未來視 <span class="tab-pill">台韓對照</span>
       </button>
       <button class="primary-tab" role="tab" data-primary="toolbox" aria-selected="false" type="button">
         社群工具箱 <span class="tab-pill">20 站</span>
@@ -108,13 +111,11 @@
       </div>
     </div>
 
-    <!-- 子視圖 2A：依職業查配裝（2×3 整齊排列，每卡單排按鈕） -->
     <section id="view-jobs">
       <nav id="jobs" class="jobs-nav" aria-label="依職系選擇職業"></nav>
       <article id="panel" class="panel-box" hidden aria-live="polite"></article>
     </section>
 
-    <!-- 子視圖 2B：10 格試配檢核器 -->
     <section id="view-builder" class="surface-box" hidden>
       <div class="builder-toolbar">
         <div class="builder-job-wrap">
@@ -134,7 +135,6 @@
       <div id="builder-slots" class="quad-grid"></div>
     </section>
 
-    <!-- 子視圖 2C：反查符文與全圖鑑 -->
     <section id="view-reverse" class="surface-box" hidden>
       <div class="filter-bar">
         <div class="filter-row" id="slot-filters" aria-label="依部位篩選"></div>
@@ -150,7 +150,6 @@
       <div id="catalog-grid" class="catalog-grid"></div>
     </section>
 
-    <!-- 子視圖 2D：S1 機制與符文之語速查 -->
     <section id="view-guide" class="surface-box" hidden>
       <div class="guide-grid">
         <div class="guide-card">
@@ -203,69 +202,242 @@
     </section>
   </section>
 
-  <!-- ===== 主分頁 3：以物易物雙向快查 ===== -->
-  <section id="tab-barter" class="surface-box" hidden>
-    <div class="panel-head">
-      <div>
-        <h2>以物易物雙向快查</h2>
-        <p class="panel-meta">純查表與金幣試算，不儲存任何個人庫存或打卡進度。快速反查手邊材料可換項目與 3 級設計圖來源。</p>
-      </div>
-      <div class="panel-tools">
-        <input id="barter-search" name="barter-search" autocomplete="off" class="search-input" style="max-width:270px;" type="search" placeholder="搜尋材料、產物或 NPC（如 聖水、蜘蛛網）…" aria-label="搜尋以物易物路線">
-        <a class="action-link" href="https://carey1029.github.io/mabinogimobile-exchange/" target="_blank" rel="noopener noreferrer">完整全城鎮手冊 ↗</a>
+  <!-- ===== 主分頁 3：物資與計算（以物易物快查 ＋ 寶石合成計算 ＋ 交易所德卡試算） ===== -->
+  <section id="tab-economy" hidden>
+    <div class="top-bar">
+      <div class="mode-tabs" role="tablist" aria-label="物資與計算子功能">
+        <button class="mode-tab" role="tab" data-econ="barter" aria-selected="true" type="button">以物易物快查</button>
+        <button class="mode-tab" role="tab" data-econ="gems" aria-selected="false" type="button">寶石合成計算</button>
+        <button class="mode-tab" role="tab" data-econ="exchange" aria-selected="false" type="button">交易所德卡試算</button>
       </div>
     </div>
 
-    <div class="filter-bar">
-      <div class="filter-row" id="barter-dir-filters" aria-label="搜尋方向"></div>
-      <div class="filter-row" id="barter-town-filters" aria-label="城鎮篩選"></div>
-      <div class="filter-row" id="barter-cat-filters" aria-label="用途分類"></div>
-    </div>
-    <div class="catalog-meta">
-      <span id="barter-count"></span>
-    </div>
-    <div class="rw-table-wrap">
-      <table class="rw-table">
-        <thead>
-          <tr>
-            <th scope="col">城鎮與 NPC</th>
-            <th scope="col">投入材料</th>
-            <th scope="col">兌換產物</th>
-            <th scope="col">限購</th>
-            <th scope="col">重點備註</th>
-          </tr>
-        </thead>
-        <tbody id="barter-body"></tbody>
-      </table>
-    </div>
+    <!-- 子視圖 3A：以物易物與商店金幣試算 -->
+    <section id="econ-barter" class="surface-box">
+      <div class="panel-head">
+        <div>
+          <h2>以物易物雙向快查</h2>
+          <p class="panel-meta">純查表與金幣試算，不儲存任何個人庫存或打卡進度。快速反查手邊材料可換項目與 3 級設計圖來源。</p>
+        </div>
+        <div class="panel-tools">
+          <input id="barter-search" name="barter-search" autocomplete="off" class="search-input" style="max-width:270px;" type="search" placeholder="搜尋材料、產物或 NPC（如 聖水、蜘蛛網）…" aria-label="搜尋以物易物路線">
+          <a class="action-link" href="https://carey1029.github.io/mabinogimobile-exchange/" target="_blank" rel="noopener noreferrer">完整全城鎮手冊 ↗</a>
+        </div>
+      </div>
 
-    <div class="shop-calc-head">
-      <div>
-        <h2 style="margin:0; font-size:20px;">每日／每週商店重點與金幣試算</h2>
-        <p class="panel-meta">調整試算份數（例如角色數）快速估算限購預算，不寫入任何存檔。</p>
+      <div class="filter-bar">
+        <div class="filter-row" id="barter-dir-filters" aria-label="搜尋方向"></div>
+        <div class="filter-row" id="barter-town-filters" aria-label="城鎮篩選"></div>
+        <div class="filter-row" id="barter-cat-filters" aria-label="用途分類"></div>
       </div>
-      <div class="mult-wrap">
-        <label for="shop-multiplier">試算倍數（角色數）</label>
-        <input id="shop-multiplier" name="shop-multiplier" type="number" inputmode="numeric" min="1" max="20" value="1" class="num-input">
+      <div class="catalog-meta">
+        <span id="barter-count"></span>
       </div>
-    </div>
-    <div class="rw-table-wrap">
-      <table class="rw-table">
-        <thead>
-          <tr>
-            <th scope="col">商店項目</th>
-            <th scope="col">優先度</th>
-            <th scope="col">重置週期</th>
-            <th scope="col">成本試算</th>
-          </tr>
-        </thead>
-        <tbody id="shop-body"></tbody>
-      </table>
-    </div>
-    <p id="shop-gold-total" class="gold-summary"></p>
+      <div class="rw-table-wrap">
+        <table class="rw-table">
+          <thead>
+            <tr>
+              <th scope="col">城鎮與 NPC</th>
+              <th scope="col">投入材料</th>
+              <th scope="col">兌換產物</th>
+              <th scope="col">限購</th>
+              <th scope="col">重點備註</th>
+            </tr>
+          </thead>
+          <tbody id="barter-body"></tbody>
+        </table>
+      </div>
+
+      <div class="shop-calc-head">
+        <div>
+          <h2 style="margin:0; font-size:20px;">每日／每週商店重點與金幣試算</h2>
+          <p class="panel-meta">調整試算份數（例如角色數）快速估算限購預算，不寫入任何存檔。</p>
+        </div>
+        <div class="mult-wrap">
+          <label for="shop-multiplier">試算倍數（角色數）</label>
+          <input id="shop-multiplier" name="shop-multiplier" type="number" inputmode="numeric" min="1" max="20" value="1" class="num-input">
+        </div>
+      </div>
+      <div class="rw-table-wrap">
+        <table class="rw-table">
+          <thead>
+            <tr>
+              <th scope="col">商店項目</th>
+              <th scope="col">優先度</th>
+              <th scope="col">重置週期</th>
+              <th scope="col">成本試算</th>
+            </tr>
+          </thead>
+          <tbody id="shop-body"></tbody>
+        </table>
+      </div>
+      <p id="shop-gold-total" class="gold-summary"></p>
+    </section>
+
+    <!-- 子視圖 3B：寶石合成與星光稜晶計算機 -->
+    <section id="econ-gems" class="surface-box" hidden>
+      <div class="panel-head">
+        <div>
+          <h2>寶石合成與星光稜晶計算機</h2>
+          <p class="panel-meta">依台服 9/9 寶石鍊金術簡化改版規則試算，純即時運算不儲存任何背包數量。</p>
+        </div>
+      </div>
+
+      <div class="calc-grid">
+        <article class="calc-card">
+          <h3>同階寶石晉階展開計算</h3>
+          <p class="calc-card-sub">計算從低階合到目標階級所需的基礎寶石總量與累計合成次數。</p>
+          <div class="calc-form-grid">
+            <div class="calc-field">
+              <label for="gem-from">起始階級</label>
+              <select id="gem-from" name="gem-from">
+                <option value="1" selected>1 階</option>
+                <option value="2">2 階</option>
+                <option value="3">3 階</option>
+                <option value="4">4 階</option>
+                <option value="5">5 階</option>
+                <option value="6">6 階</option>
+              </select>
+            </div>
+            <div class="calc-field">
+              <label for="gem-to">目標階級</label>
+              <select id="gem-to" name="gem-to">
+                <option value="2">2 階</option>
+                <option value="3">3 階</option>
+                <option value="4">4 階</option>
+                <option value="5" selected>5 階</option>
+                <option value="6">6 階</option>
+                <option value="7">7 階</option>
+              </select>
+            </div>
+            <div class="calc-field">
+              <label for="gem-qty">目標顆數</label>
+              <input id="gem-qty" name="gem-qty" type="number" inputmode="numeric" min="1" max="100" value="1">
+            </div>
+            <div class="calc-field">
+              <label for="gem-ratio">每階合成倍率（預設 3 合 1）</label>
+              <input id="gem-ratio" name="gem-ratio" type="number" inputmode="numeric" min="2" max="5" value="3">
+            </div>
+          </div>
+          <div id="gem-summary" class="calc-kpi-grid"></div>
+          <div class="rw-table-wrap">
+            <table class="rw-table">
+              <thead>
+                <tr>
+                  <th scope="col">階級</th>
+                  <th scope="col">角色</th>
+                  <th scope="col">需求顆數</th>
+                  <th scope="col">合成次數</th>
+                </tr>
+              </thead>
+              <tbody id="gem-steps-body"></tbody>
+            </table>
+          </div>
+          <p class="calc-note">提醒：已鑲嵌於裝備上的寶石可直接進行晉階免拔除；自動放入材料可能多耗金幣，想省金幣建議手動挑選。</p>
+        </article>
+
+        <article class="calc-card">
+          <h3>粗糙的星光稜晶 S 直合試算</h3>
+          <p class="calc-card-sub">9/9 改版後免去繁瑣中間公式：3 種不同單色有色寶石 S＋粗糙的黑曜石 S＋粗糙的鑽石 S 直接合成 1 顆。</p>
+          <div class="calc-form-grid">
+            <div class="calc-field">
+              <label for="prism-qty">目標「星光稜晶 S」顆數</label>
+              <input id="prism-qty" name="prism-qty" type="number" inputmode="numeric" min="1" max="50" value="3">
+            </div>
+            <div class="calc-field">
+              <label for="prism-legacy">扣除舊版暗光石／三重石英（選填）</label>
+              <input id="prism-legacy" name="prism-legacy" type="number" inputmode="numeric" min="0" max="50" value="0">
+            </div>
+          </div>
+          <div id="prism-output"></div>
+          <p class="calc-note">註：若還留有改版前的「粗糙的暗光石」或「粗糙的三重石英」，仍可於寶石鍊金介面搭配對應材料直轉星光稜晶。</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 子視圖 3C：交易所德卡手續費與淨利正反算 -->
+    <section id="econ-exchange" class="surface-box" hidden>
+      <div class="panel-head">
+        <div>
+          <h2>交易所德卡手續費與淨利試算</h2>
+          <p class="panel-meta">交易所全面以德卡計價，賣方於信箱領款時自動扣除手續費（台服實測約 15%）；中途自行取消販售不退登錄保證金。</p>
+        </div>
+      </div>
+
+      <div class="calc-grid">
+        <article class="calc-card">
+          <h3>正算：設定售價 → 實領與淨利</h3>
+          <p class="calc-card-sub">輸入預計上架價格與成本，立即試算扣稅後實領德卡與實際盈虧。</p>
+          <div class="calc-form-grid">
+            <div class="calc-field">
+              <label for="ex-price">上架單價（德卡）</label>
+              <input id="ex-price" name="ex-price" type="number" inputmode="numeric" min="0" value="100">
+            </div>
+            <div class="calc-field">
+              <label for="ex-qty">販售數量</label>
+              <input id="ex-qty" name="ex-qty" type="number" inputmode="numeric" min="1" value="1">
+            </div>
+            <div class="calc-field">
+              <label for="ex-cost">總製作／進貨成本（德卡，選填）</label>
+              <input id="ex-cost" name="ex-cost" type="number" inputmode="numeric" min="0" value="0">
+            </div>
+            <div class="calc-field">
+              <label for="ex-fee">手續費率（%）</label>
+              <input id="ex-fee" name="ex-fee" type="number" inputmode="decimal" min="0" max="50" step="0.5" value="15">
+            </div>
+          </div>
+          <div id="ex-forward-out"></div>
+          <p class="calc-note">小數點四捨五入或進位規則以遊戲內信箱結算畫面為準。</p>
+        </article>
+
+        <article class="calc-card">
+          <h3>反推：想淨拿多少 → 損益兩平最低掛單價</h3>
+          <p class="calc-card-sub">輸入期望扣稅後實際入袋的德卡數（或成本＋目標利潤），自動反推至少要標幾德卡。</p>
+          <div class="calc-form-grid">
+            <div class="calc-field">
+              <label for="ex-target">期望信箱實領（德卡）</label>
+              <input id="ex-target" name="ex-target" type="number" inputmode="numeric" min="0" value="100">
+            </div>
+            <div class="calc-field">
+              <label for="ex-rev-fee">手續費率（%）</label>
+              <input id="ex-rev-fee" name="ex-rev-fee" type="number" inputmode="decimal" min="0" max="50" step="0.5" value="15">
+            </div>
+          </div>
+          <div id="ex-reverse-out"></div>
+          <p class="calc-note">提醒：上架時需先繳登錄保證金，售出或到期會退還，但中途手動取消不退還。</p>
+        </article>
+      </div>
+    </section>
   </section>
 
-  <!-- ===== 主分頁 4：社群工具箱（移除「全部」與搜尋框，直接依 6 分類挑選） ===== -->
+  <!-- ===== 主分頁 4：版本未來視 ===== -->
+  <section id="tab-roadmap" class="surface-box" hidden>
+    <div class="panel-head">
+      <div>
+        <h2>台韓改版時間軸與未來視</h2>
+        <p class="panel-meta">整理台服已實裝紀錄與韓服實績推估之未來更新順序，實際台服開放日期請以官方公告為準。</p>
+      </div>
+      <div class="filter-row" id="roadmap-filters" aria-label="篩選改版進度"></div>
+    </div>
+
+    <div id="roadmap-timeline" class="roadmap-list"></div>
+
+    <h3 class="roadmap-section-title">尚未於台服開放之新轉職預覽</h3>
+    <div id="upcoming-classes" class="two-col-cards"></div>
+
+    <div class="schedule-split">
+      <div class="guide-card">
+        <h3>S1 → S2 資源銜接規劃建議</h3>
+        <ul id="s1-to-s2-tips"></ul>
+      </div>
+      <div>
+        <h3 class="roadmap-section-title">外觀與時裝未來視查詢入口</h3>
+        <div id="fashion-links" class="quick-links-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 主分頁 5：社群工具箱 ===== -->
   <section id="tab-toolbox" class="surface-box" hidden>
     <div id="workbench-box" class="workbench-box">
       <div class="workbench-head">
@@ -310,30 +482,39 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-6"></script>
-<script src="data/runes-s0.js?v=20261126-6"></script>
-<script src="data/schedule.js?v=20261126-6"></script>
-<script src="data/tools-catalog.js?v=20261126-6"></script>
-<script src="data/barter.js?v=20261126-6"></script>
-<script src="modules/build-checker.js?v=20261126-6"></script>
-<script src="modules/rune-center.js?v=20261126-6"></script>
-<script src="modules/barter-finder.js?v=20261126-6"></script>
-<script src="modules/timer-board.js?v=20261126-6"></script>
-<script src="modules/toolbox.js?v=20261126-6"></script>
+<script src="runes.js?v=20261126-8"></script>
+<script src="data/runes-s0.js?v=20261126-8"></script>
+<script src="data/schedule.js?v=20261126-8"></script>
+<script src="data/tools-catalog.js?v=20261126-8"></script>
+<script src="data/barter.js?v=20261126-8"></script>
+<script src="data/roadmap.js?v=20261126-8"></script>
+<script src="modules/build-checker.js?v=20261126-8"></script>
+<script src="modules/rune-center.js?v=20261126-8"></script>
+<script src="modules/barter-finder.js?v=20261126-8"></script>
+<script src="modules/calculators.js?v=20261126-8"></script>
+<script src="modules/roadmap-view.js?v=20261126-8"></script>
+<script src="modules/timer-board.js?v=20261126-8"></script>
+<script src="modules/toolbox.js?v=20261126-8"></script>
 <script>
 (() => {
   const tabSections = {
     schedule: document.querySelector('#tab-schedule'),
     runes: document.querySelector('#tab-runes'),
-    barter: document.querySelector('#tab-barter'),
+    economy: document.querySelector('#tab-economy'),
+    roadmap: document.querySelector('#tab-roadmap'),
     toolbox: document.querySelector('#tab-toolbox')
+  };
+  const econViews = {
+    barter: document.querySelector('#econ-barter'),
+    gems: document.querySelector('#econ-gems'),
+    exchange: document.querySelector('#econ-exchange')
   };
   const themeToggle = document.querySelector('#theme-toggle');
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   const toastEl = document.querySelector('#toast');
 
-  // 預設首頁：即時排程
   let currentPrimaryTab = 'schedule';
+  let currentEconSub = 'barter';
   let toastTimer = null;
 
   function el(tag, className, text) {
@@ -366,12 +547,32 @@
     try { localStorage.setItem('mabi-rune-guide-theme', next); } catch (_) {}
   };
 
+  function setEconSub(sub, updateHash = true) {
+    if (!econViews[sub]) sub = 'barter';
+    currentEconSub = sub;
+    document.querySelectorAll('#tab-economy .mode-tab').forEach(btn => {
+      btn.setAttribute('aria-selected', String(btn.dataset.econ === sub));
+    });
+    for (const [k, sec] of Object.entries(econViews)) {
+      sec.hidden = k !== sub;
+    }
+    if (updateHash) syncHash();
+  }
+
+  document.querySelectorAll('#tab-economy .mode-tab').forEach(btn => {
+    btn.onclick = () => setEconSub(btn.dataset.econ);
+  });
+
   function syncHash() {
     let params;
     if (currentPrimaryTab === 'runes') {
       params = RuneCenter.getHashParams();
     } else if (currentPrimaryTab === 'schedule') {
       params = new URLSearchParams();
+    } else if (currentPrimaryTab === 'economy') {
+      params = new URLSearchParams();
+      params.set('tab', 'economy');
+      if (currentEconSub !== 'barter') params.set('sub', currentEconSub);
     } else {
       params = new URLSearchParams();
       params.set('tab', currentPrimaryTab);
@@ -418,8 +619,15 @@
     }
     const params = new URLSearchParams(raw);
     const tab = params.get('tab');
+    const sub = params.get('sub');
     const hasRuneParams = params.has('job') || params.has('mode') || params.has('season');
-    if (tab === 'barter' || tab === 'toolbox' || tab === 'schedule') {
+    if (tab === 'barter') {
+      setPrimaryTab('economy', false);
+      setEconSub('barter', false);
+    } else if (tab === 'economy') {
+      setPrimaryTab('economy', false);
+      setEconSub(sub || 'barter', false);
+    } else if (tab === 'roadmap' || tab === 'toolbox' || tab === 'schedule') {
       setPrimaryTab(tab, false);
     } else if (tab === 'runes' || hasRuneParams) {
       setPrimaryTab('runes', false);
@@ -432,6 +640,8 @@
   const appCtx = { el, showToast, syncHash, setPrimaryTab };
   RuneCenter.init(appCtx);
   BarterFinder.init(appCtx);
+  Calculators.init(appCtx);
+  RoadmapView.init(appCtx);
   TimerBoard.init(appCtx);
   Toolbox.init(appCtx);
 
