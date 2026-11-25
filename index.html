@@ -926,8 +926,10 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js"></script>
+<script src="runes.js?v=20261125-3"></script>
 <script>
+const safeAliases = (typeof runeAliases !== 'undefined' && runeAliases) ? runeAliases : {};
+const safeRunewords = (typeof s1Runewords !== 'undefined' && s1Runewords) ? s1Runewords : [];
 const families = {
   戰士系: ['戰士', '大劍戰士', '劍術士', '騎士'],
   法師系: ['魔法師', '火焰術士', '冰結術士', '電擊術士'],
@@ -1476,7 +1478,7 @@ function renderCatalog() {
     if (reverseSlot !== '全部' && info.slot !== reverseSlot) return false;
     if (!matchesTrait(key, info, usage)) return false;
     if (!q) return true;
-    const aliases = (runeAliases[key] || []).join(' ');
+    const aliases = (safeAliases[key] || []).join(' ');
     const hay = [
       key,
       info.zh,
@@ -1518,7 +1520,7 @@ function renderCatalog() {
   for (const key of matched) {
     const info = runeInfo[key];
     const usage = runeUsage[key];
-    const aliases = runeAliases[key] || [];
+    const aliases = safeAliases[key] || [];
     const card = el('article', 'rune-card');
 
     const head = el('div', 'rc-head');
@@ -1577,7 +1579,7 @@ function renderCatalog() {
 function renderRunewords() {
   const q = rwSearch.value.trim().toLowerCase();
   rwBody.replaceChildren();
-  const list = s1Runewords.filter(item => {
+  const list = safeRunewords.filter(item => {
     if (!q) return true;
     const hay = [item.name, item.family, item.bonus, ...item.runes].join(' ').toLowerCase();
     return hay.includes(q);
@@ -1605,7 +1607,7 @@ rwSearch.addEventListener('input', renderRunewords);
 function fillTooltip(key) {
   const info = runeInfo[key];
   if (!info) return false;
-  const aliases = runeAliases[key] || [];
+  const aliases = safeAliases[key] || [];
   const usage = runeUsage[key];
 
   tooltip.replaceChildren();
@@ -1709,16 +1711,20 @@ function hideTooltip(force = false) {
   tooltip.hidden = true;
 }
 
-// 保留 matches('.rune-chip') 檢查，避免滑鼠移過中韓文內層 span 時提早關閉浮窗
-panel.addEventListener('pointerenter', (e) => {
-  if (!e.target.matches('.rune-chip') || e.pointerType === 'touch') return;
-  if (!pinnedChip) showTooltip(e.target, false);
-}, true);
+// 使用標準 bubbling 的 mouseover/mouseout + relatedTarget 檢查，避免快取/內層 span/瀏覽器差異導致無法懸停或提早關閉
+panel.addEventListener('mouseover', (e) => {
+  const chip = e.target.closest('.rune-chip');
+  if (!chip || pinnedChip) return;
+  if (activeChip === chip && !tooltip.hidden) return;
+  showTooltip(chip, false);
+});
 
-panel.addEventListener('pointerleave', (e) => {
-  if (!e.target.matches('.rune-chip') || e.pointerType === 'touch') return;
-  if (!pinnedChip) hideTooltip(false);
-}, true);
+panel.addEventListener('mouseout', (e) => {
+  const chip = e.target.closest('.rune-chip');
+  if (!chip || pinnedChip) return;
+  if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
+  hideTooltip(false);
+});
 
 panel.addEventListener('focusin', (e) => {
   const chip = e.target.closest('.rune-chip');
