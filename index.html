@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>瑪奇 Mobile｜S1 職業符文指南</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f3eb;color:#213c39;font:16px/1.65 "Atkinson Hyperlegible Next",system-ui,sans-serif}main{max-width:1040px;margin:auto;padding:clamp(20px,5vw,64px)}header{border-top:5px solid #40665d;padding-top:24px}h1,h2{font-family:Georgia,"Microsoft JhengHei",serif;letter-spacing:.04em}h1{font-size:clamp(26px,4vw,42px);margin:0}p{margin:.4em 0 1em}nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px;margin:24px 0}.family,article{background:#fffef9;border:1px solid #c8cfc1;border-radius:10px;padding:16px}.family h2{font-size:17px;margin:0 0 8px}button{font:inherit;color:inherit;background:transparent;border:1px solid #abbcb0;border-radius:6px;padding:5px 10px;margin:3px;cursor:pointer}button:hover,button[aria-pressed=true]{color:white;background:#295d50}button:focus-visible{outline:3px solid #bf8033}article{padding:clamp(14px,3vw,30px)}article h2{margin:0}table{border-collapse:collapse;width:100%;table-layout:fixed}th,td{border-bottom:1px solid #d9dfd3;padding:12px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}thead{background:#e7ede2}th:first-child{width:12%}a{color:#245f52}small{color:#496456}@media(max-width:580px){nav{grid-template-columns:1fr 1fr;gap:6px}.family{padding:8px}button{font-size:14px;padding:5px}table,tbody,tr,td,th{display:block}thead{display:none}tbody th:first-child{width:auto;background:#e7ede2}td:before{content:attr(data-tier);display:inline-block;font-weight:bold;margin-right:.6em}}
+</style><main><header><h1>瑪奇 Mobile 符文指南</h1><p>韓服 Season 1 · 選擇職業查看配裝，再點一次即可收合。</p></header><nav id="jobs" aria-label="依職系選擇職業"></nav><noscript>請啟用 JavaScript 以選擇職業。</noscript><article id="panel" hidden aria-live="polite"></article></main>
+<script src="runes.js"></script><script>
+const families = {
+  戰士系:['戰士','大劍戰士','劍術士','騎士'],
+  法師系:['魔法師','火焰術士','冰結術士','電擊術士'],
+  弓手系:['弓箭手','長弓兵','弩弓手'],
+  盜賊系:['盜賊','雙劍士','格鬥家'],
+  治癒系:['治癒師','祭司','修道士','暗黑術士'],
+  吟遊系:['吟遊詩人','舞者','樂師']
+};
+const tierLabels=['T0 主選','T1 次選','T2 備選'];
+const slots=['武器','徽章','防具','飾品'];
+const panel=document.querySelector('#panel');
+let selected=null;
+function add(parent,tag,text){const el=document.createElement(tag);el.textContent=text;parent.append(el);return el}
+function choose(button,job,family){
+  const close=selected===button;
+  if(selected)selected.setAttribute('aria-pressed','false');
+  selected=close?null:button;
+  panel.replaceChildren();panel.hidden=close;
+  if(close)return;
+  button.setAttribute('aria-pressed','true');
+  add(panel,'h2',job);
+  add(panel,'p',job==='騎士'?'韓服 S1 後期追加。配裝取自 2026/4/28 上線首週資料。':job==='暗黑術士'?'韓服 S1 開季後追加。以下為該職業實裝後的配裝。':'韓服 S1 玩家問卷 · 2025/12 至 2026/01');
+  const table=add(panel,'table','');
+  const head=table.createTHead().insertRow();
+  for(const label of ['部位',...tierLabels])add(head,'th',label).scope='col';
+  const body=table.createTBody();
+  runes[job].forEach((tiers,i)=>{
+    const row=body.insertRow();add(row,'th',slots[i]).scope='row';
+    tiers.forEach((value,j)=>{const td=add(row,'td',value||'—');td.dataset.tier=tierLabels[j]});
+  });
+  add(panel,'p','／ 表示擇一；飾品以三件組列出。空格表示缺少可核對的候選。分級為編者依韓服 S1 回覆整理，名稱保留韓文供比對。');
+  const link=add(panel,'a','查看韓服配裝來源 ↗');
+  link.href=job==='騎士'?'https://www.kakao.gg/games/mabinogi-mobile/guide-69f021f4f43b96476f0eb5c5':'https://theqoo.net/mabinogi/'+(['戰士系','法師系','弓手系'].includes(family)?'4087115736':'4087117159');
+}
+for(const [family,names] of Object.entries(families)){
+  const group=add(document.querySelector('#jobs'),'section','');group.className='family';add(group,'h2',family);
+  for(const name of names){const b=add(group,'button',name);b.setAttribute('aria-controls','panel');b.setAttribute('aria-pressed','false');b.onclick=()=>choose(b,name,family)}
+}
+</script></html>
