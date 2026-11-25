@@ -1,15 +1,14 @@
-// 模組 3：社群工具箱（17+ 中文網站分類導航 ＋ 沙盒 iframe 預覽工作台）
+// 模組 3：社群工具箱（移除「全部」與搜尋框，直接以 6 大分類按鈕挑選＋沙盒預覽工作台）
 window.Toolbox = (() => {
   let app = null;
-  let activeCategory = '全部';
+  let activeCategory = '符文與配裝';
   let activeEmbedId = null;
   let workbenchLoaded = false;
 
-  // DOM 節點
   let wbTabs, wbTitle, wbLink, wbFrame, wbReload, wbToggle, wbBody;
-  let catFilters, toolSearch, toolCount, toolGrid;
+  let catFilters, toolCount, toolGrid;
 
-  const categories = ['全部', '符文與配裝', '即時與黑洞', '物資與製作', 'MML 音樂', '新手與日常', '桌面工具'];
+  const categories = ['符文與配裝', '即時與黑洞', '物資與製作', 'MML 音樂', '新手與日常', '桌面工具'];
 
   function getEmbeddableTools() {
     return COMMUNITY_TOOLS.filter(t => t.embeddable);
@@ -53,21 +52,10 @@ window.Toolbox = (() => {
 
   function renderDirectory() {
     const { el } = app;
-    const q = toolSearch.value.trim().toLowerCase();
-    const list = COMMUNITY_TOOLS.filter(t => {
-      if (activeCategory !== '全部' && t.category !== activeCategory) return false;
-      if (!q) return true;
-      const hay = [t.name, t.category, t.s1Status, t.desc, ...(t.tags || [])].join(' ').toLowerCase();
-      return hay.includes(q);
-    });
+    const list = COMMUNITY_TOOLS.filter(t => t.category === activeCategory);
 
-    toolCount.textContent = `顯示 ${list.length} / ${COMMUNITY_TOOLS.length} 個中文社群網站與工具（所有工具版權均歸原開發者所有）`;
+    toolCount.textContent = `目前分類「${activeCategory}」共 ${list.length} 個網站（所有工具版權均歸原開發者所有）`;
     toolGrid.replaceChildren();
-
-    if (!list.length) {
-      toolGrid.append(el('p', 'note-text', '找不到符合條件的網站，請清空搜尋字詞或切換分類。'));
-      return;
-    }
 
     const frag = document.createDocumentFragment();
     for (const t of list) {
@@ -78,7 +66,6 @@ window.Toolbox = (() => {
       card.append(head);
 
       const tags = el('div', 'rc-tags');
-      tags.append(el('span', 'rc-tag', t.category));
       if (t.s1Status) {
         const cls = t.s1Status.includes('S1 支援') || t.s1Status.includes('即時')
           ? 'rc-tag is-verified'
@@ -121,7 +108,6 @@ window.Toolbox = (() => {
     wbToggle = document.querySelector('#wb-toggle');
     wbBody = document.querySelector('#wb-body');
     catFilters = document.querySelector('#tool-cat-filters');
-    toolSearch = document.querySelector('#tool-search');
     toolCount = document.querySelector('#tool-count');
     toolGrid = document.querySelector('#tool-grid');
 
@@ -154,7 +140,7 @@ window.Toolbox = (() => {
     };
 
     for (const c of categories) {
-      const cnt = c === '全部' ? COMMUNITY_TOOLS.length : COMMUNITY_TOOLS.filter(t => t.category === c).length;
+      const cnt = COMMUNITY_TOOLS.filter(t => t.category === c).length;
       const b = app.el('button', 'filter-chip', `${c} (${cnt})`);
       b.type = 'button';
       b.dataset.cat = c;
@@ -167,7 +153,6 @@ window.Toolbox = (() => {
       catFilters.append(b);
     }
 
-    toolSearch.addEventListener('input', renderDirectory);
     renderDirectory();
   }
 

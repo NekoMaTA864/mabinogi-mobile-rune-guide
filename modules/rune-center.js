@@ -1,12 +1,13 @@
-// 模組 1：符文中心（依職業查配裝四象限、雙職共用比對、150 顆反查圖鑑、懸停效果浮窗、S1 機制與符文之語）
+// 模組 1：符文中心（支援 S1／S0 賽季切換、6 職系整齊排版、四象限、雙職比對、反查全圖鑑、10 格試配檢核與 S1 指南）
 window.RuneCenter = (() => {
+  // 依使用者指定之確切標題與順序（2×3 整齊排列，每卡固定單排按鈕）
   const families = {
-    戰士系: ['戰士', '大劍戰士', '劍術士', '騎士'],
-    法師系: ['魔法師', '火焰術士', '冰結術士', '電擊術士'],
-    弓手系: ['弓箭手', '長弓兵', '弩弓手'],
-    盜賊系: ['盜賊', '雙劍士', '格鬥家'],
-    治癒系: ['治癒師', '祭司', '修道士', '暗黑術士'],
-    吟遊系: ['吟遊詩人', '舞者', '樂師']
+    戰士系列: ['戰士', '大劍戰士', '劍術士', '騎士'],
+    弓手系列: ['弓箭手', '長弓兵', '弩弓手'],
+    魔法師系列: ['魔法師', '火焰術士', '冰結術士', '電擊術士'],
+    治癒師系列: ['治癒師', '祭司', '修道士', '暗黑術士'],
+    吟遊詩人系列: ['吟遊詩人', '舞者', '樂師'],
+    盜賊系列: ['盜賊', '雙劍士', '格鬥家']
   };
 
   const allJobs = Object.values(families).flat();
@@ -43,16 +44,17 @@ window.RuneCenter = (() => {
   let app = null;
   let safeAliases = {};
   let safeRunewords = [];
-  let runeKeys = [];
-  let runePattern = null;
-  const runeUsage = {};
-  const jobRuneSets = {};
+
+  // 雙賽季索引（s1 / s0）
+  const seasonData = {};
   const jobButtons = new Map();
 
   // DOM 節點
-  let viewJobs, viewReverse, viewBuilder, viewGuide, panel, tooltip, quickSearch, catalogGrid, catalogCount, catalogSort, rwBody, rwSearch;
+  let viewJobs, viewReverse, viewBuilder, viewGuide, panel, tooltip, quickSearch;
+  let catalogGrid, catalogCount, catalogSort, slotFiltersEl, traitFiltersEl, rwBody, rwSearch;
 
   // 狀態
+  let currentSeason = 's1';
   let currentSubMode = 'jobs';
   let selectedBtn = null;
   let currentJob = null;
@@ -65,62 +67,113 @@ window.RuneCenter = (() => {
   let reverseSlot = '全部';
   let reverseTrait = 'all';
 
-  function buildIndexes() {
-    safeAliases = (typeof runeAliases !== 'undefined' && runeAliases) ? runeAliases : {};
-    safeRunewords = (typeof s1Runewords !== 'undefined' && s1Runewords) ? s1Runewords : [];
-    runeKeys = Object.keys(runeInfo).sort((a, b) => b.length - a.length);
-    runePattern = new RegExp(
-      '(' + runeKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')',
+  function buildSeasonIndex(infoMap, jobMap) {
+    const keys = Object.keys(infoMap).sort((a, b) => b.length - a.length);
+    const pattern = new RegExp(
+      '(' + keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')',
       'g'
     );
-
-    for (const key of runeKeys) {
-      runeUsage[key] = { t0: [], t1: [], t2: [], noteRef: [] };
-    }
+    const usage = {};
+    const jobSets = {};
+    for (const k of keys) usage[k] = { t0: [], t1: [], t2: [], noteRef: [] };
 
     for (const job of allJobs) {
       const usedSet = new Set();
-      runes[job].forEach((slotTiers) => {
+      const slots = jobMap[job];
+      if (!slots) {
+        jobSets[job] = usedSet;
+        continue;
+      }
+      slots.forEach((slotTiers) => {
         slotTiers.forEach((cell, tIdx) => {
           if (!cell) return;
           const tierKey = ['t0', 't1', 't2'][tIdx];
           const mainOnly = cell.replace(/（[^）]*）/g, '');
-          const mainMatches = new Set(mainOnly.match(runePattern) || []);
-          const allMatches = new Set(cell.match(runePattern) || []);
+          const mainMatches = new Set(mainOnly.match(pattern) || []);
+          const allMatches = new Set(cell.match(pattern) || []);
           for (const rk of allMatches) {
-            if (mainMatches.has(rk)) {
+            // S0 飾品鍵本身含「（S0）」，主項判定改直接比對 allMatches
+            if (mainMatches.has(rk) || rk.includes('（S0）')) {
               usedSet.add(rk);
-              if (!runeUsage[rk][tierKey].includes(job)) runeUsage[rk][tierKey].push(job);
+              if (!usage[rk][tierKey].includes(job)) usage[rk][tierKey].push(job);
             } else {
-              if (!runeUsage[rk].noteRef.includes(job)) runeUsage[rk].noteRef.push(job);
+              if (!usage[rk].noteRef.includes(job)) usage[rk].noteRef.push(job);
             }
           }
         });
       });
-      jobRuneSets[job] = usedSet;
+      jobSets[job] = usedSet;
     }
+
+    return { infoMap, jobMap, keys, pattern, usage, jobSets };
+  }
+
+  function getActiveSeason() {
+    return seasonData[currentSeason] || seasonData.s1;
+  }
+
+  function buildIndexes() {
+    safeAliases = (typeof runeAliases !== 'undefined' && runeAliases) ? runeAliases : {};
+    safeRunewords = (typeof s1Runewords !== 'undefined' && s1Runewords) ? s1Runewords : [];
+    seasonData.s1 = buildSeasonIndex(runeInfo, runes);
+    if (typeof s0RuneInfo !== 'undefined' && typeof s0Runes !== 'undefined') {
+      seasonData.s0 = buildSeasonIndex(s0RuneInfo, s0Runes);
+    }
+  }
+
+  function updateSeasonUI() {
+    document.querySelectorAll('.season-btn').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.season === currentSeason));
+    });
+    // S0 時期無暗黑術士／騎士，按鈕以柔化提示但不鎖死（點進去會提示可一鍵切 S1）
+    const ds = getActiveSeason();
+    for (const [job, btn] of jobButtons.entries()) {
+      const unavailable = !ds.jobMap[job];
+      btn.classList.toggle('is-s1-only', unavailable);
+    }
+    renderSlotFilterCounts();
+  }
+
+  function setSeason(season, updateHash = true) {
+    if (!seasonData[season]) return;
+    currentSeason = season;
+    hideTooltip(true);
+    updateSeasonUI();
+
+    if (currentSubMode === 'jobs' && currentJob) {
+      renderPanel(currentJob, currentFamily);
+    } else if (currentSubMode === 'reverse') {
+      renderCatalog();
+    } else if (currentSubMode === 'builder' && season === 's0') {
+      app.showToast('10 格試配檢核器以 S1 機制為準，切換檢核時將使用 S1 符文池');
+    }
+    if (updateHash) app.syncHash();
   }
 
   function renderCellContent(container, rawText, sharedSet) {
     const { el } = app;
+    const ds = getActiveSeason();
     if (!rawText) {
       container.append(el('span', 'empty-cell', '—'));
       return;
     }
-    const parts = rawText.split(runePattern);
+    const parts = rawText.split(ds.pattern);
     for (const part of parts) {
       if (!part) continue;
-      if (Object.prototype.hasOwnProperty.call(runeInfo, part)) {
-        const info = runeInfo[part];
+      if (Object.prototype.hasOwnProperty.call(ds.infoMap, part)) {
+        const info = ds.infoMap[part];
         const chip = el('button', 'rune-chip');
         chip.type = 'button';
         chip.dataset.rune = part;
+        chip.dataset.season = currentSeason;
         chip.setAttribute('aria-describedby', 'rune-tooltip');
         if (sharedSet && sharedSet.has(part)) chip.classList.add('is-shared');
         if (highlightRuneKey === part) chip.classList.add('is-highlighted');
         chip.append(document.createTextNode(info.zh));
-        if (showKoreanInline) {
-          chip.append(el('span', 'rune-kr-inline', `(${part})`));
+        if (currentSeason === 's1' && showKoreanInline) {
+          const kr = el('span', 'rune-kr-inline', `(${part})`);
+          kr.setAttribute('translate', 'no');
+          chip.append(kr);
         }
         container.append(chip);
       } else {
@@ -136,22 +189,41 @@ window.RuneCenter = (() => {
   }
 
   function getJobMeta(job) {
+    if (currentSeason === 's0') {
+      return '台服 S0（白星 6★ 傳說）畢業與過渡配裝，對照 TMS S0 攻略與愛爾琳網採用排行。';
+    }
     if (job === '騎士') {
-      return '韓服 S1 後期追加（2026/04/28 上線）· 已依後期 S1 資料覆核徽章與四部位配裝，台服開放進度請對照公告。';
+      return '韓服 S1 後期追加（2026/04/28 上線），已依後期 S1 資料覆核徽章與四部位配裝。';
     }
     if (job === '暗黑術士') {
-      return '韓服 S1 開季後追加 · 以下為實裝後玩家問卷整理，台服開放進度請對照官方公告。';
+      return '韓服 S1 開季後追加，以下為實裝後玩家問卷整理，台服開放進度請對照官方公告。';
     }
     if (job === '舞者') {
-      return '韓服 S1 玩家問卷（2025/12–2026/01）· 已將同組技能改造併回 T0 並補上舊版過渡對照。';
+      return '韓服 S1 玩家問卷（2025/12–2026/01），已將同組技能改造併回 T0 並補上舊版過渡。';
     }
     return '韓服 S1 玩家問卷（2025/12–2026/01）與 S1 攻略覆核。';
   }
 
   function buildQuadrantGrid(job, sharedSet) {
     const { el } = app;
+    const ds = getActiveSeason();
+    const jobData = ds.jobMap[job];
+    if (!jobData) {
+      const box = el('div', 'compare-summary');
+      const p = el('div');
+      p.append(
+        el('strong', '', `「${job}」於 S1 賽季才正式實裝，無 S0 白星配裝。`),
+        document.createTextNode(' 可直接切換至 S1 查看完整四象限推薦。')
+      );
+      const sw = el('button', 'tool-btn is-primary', '切換至 S1 查看配裝');
+      sw.type = 'button';
+      sw.style.marginTop = '10px';
+      sw.onclick = () => setSeason('s1');
+      box.append(p, sw);
+      return box;
+    }
+
     const grid = el('div', 'quad-grid');
-    const jobData = runes[job];
     for (const q of quadrants) {
       const card = el('section', 'slot-card');
       card.setAttribute('aria-label', `${job} ${q.label}符文`);
@@ -187,12 +259,14 @@ window.RuneCenter = (() => {
   }
 
   function formatPlainTextBuild(job) {
-    const lines = [`【瑪奇 Mobile S1 符文指南｜${job}】`];
+    const ds = getActiveSeason();
+    if (!ds.jobMap[job]) return `【瑪奇 Mobile ${currentSeason.toUpperCase()}｜${job}】此職業於 S1 才實裝。`;
+    const lines = [`【瑪奇 Mobile ${currentSeason.toUpperCase()} 符文指南｜${job}】`];
     for (const q of quadrants) {
       lines.push(`\n■ ${q.label}`);
-      runes[job][q.index].forEach((cell, idx) => {
+      ds.jobMap[job][q.index].forEach((cell, idx) => {
         const text = cell
-          ? cell.replace(runePattern, m => (runeInfo[m] ? runeInfo[m].zh : m))
+          ? cell.replace(ds.pattern, m => (ds.infoMap[m] ? ds.infoMap[m].zh : m))
           : '—';
         lines.push(`  T${idx}：${text}`);
       });
@@ -202,95 +276,107 @@ window.RuneCenter = (() => {
 
   function renderPanel(job, family) {
     const { el, showToast, syncHash } = app;
+    const ds = getActiveSeason();
     hideTooltip(true);
     panel.replaceChildren();
 
-    const sharedSet = compareJob
-      ? new Set([...jobRuneSets[job]].filter(k => jobRuneSets[compareJob].has(k)))
+    const hasMainData = Boolean(ds.jobMap[job]);
+    const validCompare = compareJob && ds.jobMap[compareJob] ? compareJob : null;
+    const sharedSet = (hasMainData && validCompare)
+      ? new Set([...ds.jobSets[job]].filter(k => ds.jobSets[validCompare].has(k)))
       : null;
 
     const head = el('div', 'panel-head');
     const titleWrap = el('div');
-    titleWrap.append(el('h2', '', compareJob ? `${job} ⇄ ${compareJob}` : job));
+    const seasonTag = currentSeason === 's0' ? '（S0 白星 6★）' : '（S1 黃星 8★）';
+    titleWrap.append(el('h2', '', validCompare ? `${job} ⇄ ${validCompare} ${seasonTag}` : `${job} ${seasonTag}`));
     titleWrap.append(el('p', 'panel-meta', getJobMeta(job)));
 
     const tools = el('div', 'panel-tools');
 
-    const cmpSelect = el('select', 'tool-select');
-    cmpSelect.setAttribute('aria-label', '選擇另一職業進行並排比較');
-    cmpSelect.append(new Option(compareJob ? '✕ 關閉雙職比較' : '＋ 與另一職比較', ''));
-    for (const [fam, names] of Object.entries(families)) {
-      const og = document.createElement('optgroup');
-      og.label = fam;
-      for (const name of names) {
-        if (name === job) continue;
-        og.append(new Option(`比較：${name}`, name, false, name === compareJob));
+    if (hasMainData) {
+      const cmpSelect = el('select', 'tool-select');
+      cmpSelect.setAttribute('aria-label', '選擇另一職業進行並排比較');
+      cmpSelect.append(new Option(validCompare ? '✕ 關閉雙職比較' : '＋ 與另一職比較', ''));
+      for (const [fam, names] of Object.entries(families)) {
+        const og = document.createElement('optgroup');
+        og.label = fam;
+        for (const name of names) {
+          if (name === job || !ds.jobMap[name]) continue;
+          og.append(new Option(`比較：${name}`, name, false, name === validCompare));
+        }
+        if (og.children.length) cmpSelect.append(og);
       }
-      cmpSelect.append(og);
+      cmpSelect.onchange = () => {
+        compareJob = cmpSelect.value || null;
+        highlightRuneKey = null;
+        renderPanel(currentJob, currentFamily);
+        syncHash();
+      };
+      tools.append(cmpSelect);
+
+      if (currentSeason === 's1') {
+        const krToggle = el('button', 'tool-btn', '並排顯示韓文');
+        krToggle.type = 'button';
+        krToggle.setAttribute('aria-pressed', String(showKoreanInline));
+        krToggle.onclick = () => {
+          showKoreanInline = !showKoreanInline;
+          renderPanel(currentJob, currentFamily);
+        };
+        tools.append(krToggle);
+      }
+
+      const copyBtn = el('button', 'tool-btn', '複製配裝');
+      copyBtn.type = 'button';
+      copyBtn.onclick = async () => {
+        const text = validCompare
+          ? formatPlainTextBuild(job) + '\n\n' + formatPlainTextBuild(validCompare)
+          : formatPlainTextBuild(job);
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast(`已複製「${validCompare ? `${job}＋${validCompare}` : job}」配裝文字`);
+        } catch (_) {
+          showToast('瀏覽器未允許自動複製，請手動選取');
+        }
+      };
+      tools.append(copyBtn);
+
+      const shareBtn = el('button', 'tool-btn', '複製連結');
+      shareBtn.type = 'button';
+      shareBtn.onclick = async () => {
+        syncHash();
+        try {
+          await navigator.clipboard.writeText(location.href);
+          showToast('已複製本職業專屬分享連結');
+        } catch (_) {
+          showToast('已更新網址列，可直接複製網址分享');
+        }
+      };
+      tools.append(shareBtn);
     }
-    cmpSelect.onchange = () => {
-      compareJob = cmpSelect.value || null;
-      highlightRuneKey = null;
-      renderPanel(currentJob, currentFamily);
-      syncHash();
-    };
-    tools.append(cmpSelect);
-
-    const krToggle = el('button', 'tool-btn', '並排顯示韓文');
-    krToggle.type = 'button';
-    krToggle.setAttribute('aria-pressed', String(showKoreanInline));
-    krToggle.onclick = () => {
-      showKoreanInline = !showKoreanInline;
-      renderPanel(currentJob, currentFamily);
-    };
-    tools.append(krToggle);
-
-    const copyBtn = el('button', 'tool-btn', '複製配裝');
-    copyBtn.type = 'button';
-    copyBtn.onclick = async () => {
-      const text = compareJob
-        ? formatPlainTextBuild(job) + '\n\n' + formatPlainTextBuild(compareJob)
-        : formatPlainTextBuild(job);
-      try {
-        await navigator.clipboard.writeText(text);
-        showToast(`已複製「${compareJob ? `${job}＋${compareJob}` : job}」配裝文字`);
-      } catch (_) {
-        showToast('瀏覽器未允許自動複製，請手動選取');
-      }
-    };
-    tools.append(copyBtn);
-
-    const shareBtn = el('button', 'tool-btn', '複製連結');
-    shareBtn.type = 'button';
-    shareBtn.onclick = async () => {
-      syncHash();
-      try {
-        await navigator.clipboard.writeText(location.href);
-        showToast('已複製本職業專屬分享連結');
-      } catch (_) {
-        showToast('已更新網址列，可直接複製網址分享');
-      }
-    };
-    tools.append(shareBtn);
 
     head.append(titleWrap, tools);
     panel.append(head);
 
-    panel.append(
-      el(
-        'p',
-        'hover-hint',
-        '提示：滑鼠移至（手機可點擊）任一符文可查看中文效果、對應技能與韓文原名；點擊鎖定後可「反查採用職業」。'
-      )
-    );
+    if (hasMainData) {
+      panel.append(
+        el(
+          'p',
+          'hover-hint',
+          currentSeason === 's0'
+            ? '提示：滑鼠移至（手機點擊）任一 S0 符文可查看效果說明與全職採用數；S0 白星 6★ 傳說於 S1 前期可先保留過渡。'
+            : '提示：滑鼠移至（手機點擊）任一 S1 符文可查看中文效果、對應技能與韓文原名；點擊鎖定後可反查採用職業。'
+        )
+      );
+    }
 
-    if (compareJob) {
+    if (validCompare && sharedSet) {
       const box = el('div', 'compare-summary');
-      const sharedSorted = [...sharedSet].sort((a, b) => slotOrder[runeInfo[a].slot] - slotOrder[runeInfo[b].slot]);
+      const sharedSorted = [...sharedSet].sort((a, b) => slotOrder[ds.infoMap[a].slot] - slotOrder[ds.infoMap[b].slot]);
       const summaryTitle = el('div');
       summaryTitle.append(
         el('strong', '', `共用符文標示（共 ${sharedSorted.length} 顆）`),
-        document.createTextNode(`：下方兩職表格中以金框標示的符文，代表「${job}」與「${compareJob}」皆有推薦，優先強化可跨職共用。`)
+        document.createTextNode(`：下方兩職表格中以金框標示的符文，代表「${job}」與「${validCompare}」皆有推薦。`)
       );
       box.append(summaryTitle);
       if (sharedSorted.length) {
@@ -299,7 +385,8 @@ window.RuneCenter = (() => {
           const chip = el('button', 'rune-chip is-shared');
           chip.type = 'button';
           chip.dataset.rune = rk;
-          chip.textContent = `${runeInfo[rk].slot}・${runeInfo[rk].zh}`;
+          chip.dataset.season = currentSeason;
+          chip.textContent = `${ds.infoMap[rk].slot}・${ds.infoMap[rk].zh}`;
           list.append(chip);
         }
         box.append(list);
@@ -309,12 +396,12 @@ window.RuneCenter = (() => {
 
     panel.append(buildQuadrantGrid(job, sharedSet));
 
-    if (compareJob) {
+    if (validCompare) {
       const divHead = el('div', 'compare-divider');
-      divHead.append(el('h3', '', `${compareJob}（對照職業）`));
-      divHead.append(el('span', 'panel-meta', getJobMeta(compareJob)));
+      divHead.append(el('h3', '', `${validCompare}（對照職業）`));
+      divHead.append(el('span', 'panel-meta', getJobMeta(validCompare)));
       panel.append(divHead);
-      panel.append(buildQuadrantGrid(compareJob, sharedSet));
+      panel.append(buildQuadrantGrid(validCompare, sharedSet));
     }
 
     const foot = el('div', 'panel-foot');
@@ -322,17 +409,23 @@ window.RuneCenter = (() => {
       el(
         'p',
         '',
-        '／ 表示擇一；＋ 表示飾品三件組；「—」表示缺少可核對候選。譯名為社群常用譯名或暫譯，請以懸停效果核對台服圖鑑。'
+        currentSeason === 's0'
+          ? '／ 表示擇一；＋ 表示飾品三件組。S0 採用率與名稱依台服 S0 攻略與愛爾琳網對照整理。'
+          : '／ 表示擇一；＋ 表示飾品三件組；「—」表示缺少可核對候選。S1 譯名為社群譯名或暫譯，請以懸停效果核對圖鑑。'
       )
     );
-    const link = el('a', '', '查看韓服配裝來源 ↗');
+    const link = el('a', '', currentSeason === 's0' ? '查看愛爾琳網 S0 採用排行 ↗' : '查看韓服 S1 配裝來源 ↗');
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.href =
-      job === '騎士'
-        ? 'https://www.kakao.gg/games/mabinogi-mobile/guide-69f021f4f43b96476f0eb5c5'
-        : 'https://theqoo.net/mabinogi/' +
-          (['戰士系', '法師系', '弓手系'].includes(family) ? '4087115736' : '4087117159');
+    if (currentSeason === 's0') {
+      link.href = 'https://erinn.tw/runes';
+    } else {
+      link.href =
+        job === '騎士'
+          ? 'https://www.kakao.gg/games/mabinogi-mobile/guide-69f021f4f43b96476f0eb5c5'
+          : 'https://theqoo.net/mabinogi/' +
+            (['戰士系列', '魔法師系列', '弓手系列'].includes(family) ? '4087115736' : '4087117159');
+    }
     foot.append(link);
     panel.append(foot);
   }
@@ -397,23 +490,32 @@ window.RuneCenter = (() => {
   }
 
   // ===== 反查圖鑑 =====
+  function renderSlotFilterCounts() {
+    if (!slotFiltersEl) return;
+    const ds = getActiveSeason();
+    slotFiltersEl.querySelectorAll('.filter-chip').forEach(btn => {
+      const s = btn.dataset.slot;
+      const cnt = s === '全部' ? ds.keys.length : ds.keys.filter(k => ds.infoMap[k].slot === s).length;
+      btn.textContent = `${s} (${cnt})`;
+    });
+  }
+
   function initCatalogFilters() {
     const { el } = app;
-    const sf = document.querySelector('#slot-filters');
     for (const s of slotFilterOpts) {
-      const cnt = s === '全部' ? runeKeys.length : runeKeys.filter(k => runeInfo[k].slot === s).length;
-      const b = el('button', 'filter-chip', `${s} (${cnt})`);
+      const b = el('button', 'filter-chip', s);
       b.type = 'button';
       b.dataset.slot = s;
       b.setAttribute('aria-pressed', String(s === reverseSlot));
       b.onclick = () => {
         reverseSlot = s;
-        sf.querySelectorAll('.filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.slot === s)));
+        slotFiltersEl.querySelectorAll('.filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.slot === s)));
         renderCatalog();
       };
-      sf.append(b);
+      slotFiltersEl.append(b);
     }
-    const tf = document.querySelector('#trait-filters');
+    renderSlotFilterCounts();
+
     for (const t of traitFilterOpts) {
       const b = el('button', 'filter-chip', t.label);
       b.type = 'button';
@@ -421,10 +523,10 @@ window.RuneCenter = (() => {
       b.setAttribute('aria-pressed', String(t.id === reverseTrait));
       b.onclick = () => {
         reverseTrait = t.id;
-        tf.querySelectorAll('.filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.trait === t.id)));
+        traitFiltersEl.querySelectorAll('.filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.trait === t.id)));
         renderCatalog();
       };
-      tf.append(b);
+      traitFiltersEl.append(b);
     }
   }
 
@@ -440,14 +542,15 @@ window.RuneCenter = (() => {
 
   function renderCatalog() {
     const { el } = app;
+    const ds = getActiveSeason();
     const q = quickSearch.value.trim().toLowerCase();
-    const matched = runeKeys.filter(key => {
-      const info = runeInfo[key];
-      const usage = runeUsage[key];
+    const matched = ds.keys.filter(key => {
+      const info = ds.infoMap[key];
+      const usage = ds.usage[key];
       if (reverseSlot !== '全部' && info.slot !== reverseSlot) return false;
       if (!matchesTrait(info, usage)) return false;
       if (!q) return true;
-      const aliases = (safeAliases[key] || []).join(' ');
+      const aliases = currentSeason === 's1' ? (safeAliases[key] || []).join(' ') : '';
       const hay = [
         key, info.zh, aliases, info.slot, info.tierTag || '',
         info.job || '', info.skill || '', info.effect || '', info.defect || '', info.note || ''
@@ -457,37 +560,40 @@ window.RuneCenter = (() => {
 
     if (catalogSort.value === 'popular') {
       matched.sort((a, b) => {
-        const ua = runeUsage[a], ub = runeUsage[b];
+        const ua = ds.usage[a], ub = ds.usage[b];
         if (ub.t0.length !== ua.t0.length) return ub.t0.length - ua.t0.length;
         const totA = ua.t0.length + ua.t1.length + ua.t2.length;
         const totB = ub.t0.length + ub.t1.length + ub.t2.length;
         if (totB !== totA) return totB - totA;
-        return slotOrder[runeInfo[a].slot] - slotOrder[runeInfo[b].slot];
+        return slotOrder[ds.infoMap[a].slot] - slotOrder[ds.infoMap[b].slot];
       });
     } else {
-      matched.sort((a, b) => slotOrder[runeInfo[a].slot] - slotOrder[runeInfo[b].slot]);
+      matched.sort((a, b) => slotOrder[ds.infoMap[a].slot] - slotOrder[ds.infoMap[b].slot]);
     }
 
-    catalogCount.textContent = `顯示 ${matched.length} / ${runeKeys.length} 顆符文（點擊下方職業徽章可直接跳轉該職四象限配裝）`;
+    const sLabel = currentSeason === 's0' ? 'S0 白星 6★' : 'S1 黃星 8★';
+    catalogCount.textContent = `【${sLabel}】顯示 ${matched.length} / ${ds.keys.length} 顆符文（點擊下方職業徽章可直接跳轉該職配裝）`;
     catalogGrid.replaceChildren();
 
     if (!matched.length) {
-      catalogGrid.append(el('p', 'note-text', '找不到符合條件的符文，可試著改搜效果關鍵字（如「暴擊」「破防」「冷卻」「燃燒」）或清空篩選。'));
+      catalogGrid.append(el('p', 'note-text', '找不到符合條件的符文，可切換賽季（S1／S0）或改搜效果關鍵字（如「暴擊」「破防」「冷卻」）。'));
       return;
     }
 
     const frag = document.createDocumentFragment();
     for (const key of matched) {
-      const info = runeInfo[key];
-      const usage = runeUsage[key];
-      const aliases = safeAliases[key] || [];
+      const info = ds.infoMap[key];
+      const usage = ds.usage[key];
+      const aliases = currentSeason === 's1' ? (safeAliases[key] || []) : [];
       const card = el('article', 'rune-card');
 
       const head = el('div', 'rc-head');
       head.append(el('h3', 'rc-title', info.zh));
-      const krSpan = el('span', 'rc-kr', key);
-      krSpan.setAttribute('translate', 'no');
-      head.append(krSpan);
+      if (currentSeason === 's1') {
+        const krSpan = el('span', 'rc-kr', key);
+        krSpan.setAttribute('translate', 'no');
+        head.append(krSpan);
+      }
       card.append(head);
 
       if (aliases.length) card.append(el('p', 'rc-aliases', `社群常見別名：${aliases.join('、')}`));
@@ -496,11 +602,13 @@ window.RuneCenter = (() => {
       tags.append(el('span', 'rc-tag', info.slot));
       if (info.tierTag) tags.append(el('span', 'rc-tag', info.tierTag));
       if (info.job) tags.append(el('span', 'rc-tag', info.job));
+      const isVerified = info.status === '社群譯名' || info.status === '台服 S0 正式名';
       tags.append(
         el(
           'span',
-          info.status === '社群譯名' ? 'rc-tag is-verified' : 'rc-tag is-draft',
-          info.status === '社群譯名' ? '社群常用譯名' : '暫譯・以效果對照'
+          isVerified ? 'rc-tag is-verified' : 'rc-tag is-draft',
+          info.status === '台服 S0 正式名' ? '台服 S0 正式名'
+            : info.status === '社群譯名' ? '社群常用譯名' : '暫譯・以效果對照'
         )
       );
       card.append(tags);
@@ -563,21 +671,27 @@ window.RuneCenter = (() => {
     }
   }
 
-  // ===== 浮動效果提示窗 =====
-  function fillTooltip(key) {
+  // ===== 浮動效果提示窗（同時支援 S1 與 S0） =====
+  function fillTooltip(key, seasonKey) {
     const { el } = app;
-    const info = runeInfo[key];
+    const targetSeason = seasonKey && seasonData[seasonKey] ? seasonKey : currentSeason;
+    const ds = seasonData[targetSeason] || seasonData.s1;
+    const info = ds.infoMap[key];
     if (!info) return false;
-    const aliases = safeAliases[key] || [];
-    const usage = runeUsage[key];
+    const aliases = targetSeason === 's1' ? (safeAliases[key] || []) : [];
+    const usage = ds.usage[key];
 
     tooltip.replaceChildren();
 
     const head = el('div', 'tt-head');
     head.append(el('span', 'tt-title', info.zh));
-    const krSpan = el('span', 'tt-kr', key);
-    krSpan.setAttribute('translate', 'no');
-    head.append(krSpan);
+    if (targetSeason === 's1') {
+      const krSpan = el('span', 'tt-kr', key);
+      krSpan.setAttribute('translate', 'no');
+      head.append(krSpan);
+    } else {
+      head.append(el('span', 'tt-kr', 'S0 賽季零'));
+    }
     tooltip.append(head);
 
     if (aliases.length) tooltip.append(el('p', 'tt-aliases', `社群別名：${aliases.join('、')}`));
@@ -586,8 +700,15 @@ window.RuneCenter = (() => {
     tags.append(el('span', 'tt-tag', info.slot));
     if (info.tierTag) tags.append(el('span', 'tt-tag', info.tierTag));
     if (info.job) tags.append(el('span', 'tt-tag', info.job));
-    const statusCls = info.status === '社群譯名' ? 'tt-tag is-verified' : 'tt-tag is-draft';
-    tags.append(el('span', statusCls, info.status === '社群譯名' ? '社群常用譯名' : '暫譯・以效果對照'));
+    const isVerified = info.status === '社群譯名' || info.status === '台服 S0 正式名';
+    tags.append(
+      el(
+        'span',
+        isVerified ? 'tt-tag is-verified' : 'tt-tag is-draft',
+        info.status === '台服 S0 正式名' ? '台服 S0 正式名'
+          : info.status === '社群譯名' ? '社群常用譯名' : '暫譯・以效果對照'
+      )
+    );
     tooltip.append(tags);
 
     if (info.skill) tooltip.append(el('p', 'tt-skill', `對應技能：${info.skill}`));
@@ -609,11 +730,12 @@ window.RuneCenter = (() => {
       jumpBtn.onclick = (e) => {
         e.stopPropagation();
         hideTooltip(true);
+        if (targetSeason !== currentSeason) setSeason(targetSeason, false);
         quickSearch.value = info.zh;
         reverseSlot = '全部';
         reverseTrait = 'all';
-        document.querySelectorAll('#slot-filters .filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.slot === '全部')));
-        document.querySelectorAll('#trait-filters .filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.trait === 'all')));
+        slotFiltersEl.querySelectorAll('.filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.slot === '全部')));
+        traitFiltersEl.querySelectorAll('.filter-chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.trait === 'all')));
         setSubMode('reverse');
       };
       uRow.append(jumpBtn);
@@ -647,7 +769,8 @@ window.RuneCenter = (() => {
 
   function showTooltip(chip, pin = false) {
     const key = chip.dataset.rune;
-    if (!fillTooltip(key)) return;
+    const seasonKey = chip.dataset.season || 's1';
+    if (!fillTooltip(key, seasonKey)) return;
     if (activeChip && activeChip !== chip) activeChip.classList.remove('is-active');
     activeChip = chip;
     chip.classList.add('is-active');
@@ -712,6 +835,9 @@ window.RuneCenter = (() => {
     document.querySelectorAll('#tab-runes .mode-tab').forEach(btn => {
       btn.onclick = () => setSubMode(btn.dataset.mode);
     });
+    document.querySelectorAll('.season-btn').forEach(btn => {
+      btn.onclick = () => setSeason(btn.dataset.season);
+    });
 
     quickSearch.addEventListener('input', () => {
       if (quickSearch.value.trim() && currentSubMode !== 'reverse') {
@@ -756,6 +882,8 @@ window.RuneCenter = (() => {
     catalogGrid = document.querySelector('#catalog-grid');
     catalogCount = document.querySelector('#catalog-count');
     catalogSort = document.querySelector('#catalog-sort');
+    slotFiltersEl = document.querySelector('#slot-filters');
+    traitFiltersEl = document.querySelector('#trait-filters');
     rwBody = document.querySelector('#rw-body');
     rwSearch = document.querySelector('#rw-search');
 
@@ -765,6 +893,7 @@ window.RuneCenter = (() => {
     for (const [family, names] of Object.entries(families)) {
       const group = app.el('section', 'family');
       group.append(app.el('h2', '', family));
+      const row = app.el('div', 'job-btn-row');
       for (const name of names) {
         const b = app.el('button', '', name);
         b.type = 'button';
@@ -772,18 +901,20 @@ window.RuneCenter = (() => {
         b.setAttribute('aria-pressed', 'false');
         b.onclick = () => choose(b, name, family);
         jobButtons.set(name, b);
-        group.append(b);
+        row.append(b);
       }
+      group.append(row);
       nav.append(group);
     }
 
     initCatalogFilters();
+    updateSeasonUI();
     bindEvents();
 
     if (window.BuildChecker) {
       BuildChecker.init(app, {
         allJobs,
-        runePattern,
+        runePattern: seasonData.s1.pattern,
         safeRunewords,
         attachTooltipContainer
       });
@@ -793,14 +924,19 @@ window.RuneCenter = (() => {
   return {
     init,
     allJobs,
+    setSeason,
     setSubMode,
     openJob,
     hideTooltip,
     getHashParams() {
       if (currentSubMode === 'builder' && window.BuildChecker) {
-        return BuildChecker.getHashParams();
+        const bp = BuildChecker.getHashParams();
+        bp.set('tab', 'runes');
+        return bp;
       }
       const p = new URLSearchParams();
+      p.set('tab', 'runes');
+      if (currentSeason !== 's1') p.set('season', currentSeason);
       if (currentSubMode === 'jobs') {
         if (currentJob) p.set('job', currentJob);
         if (currentJob && compareJob) p.set('cmp', compareJob);
@@ -813,6 +949,8 @@ window.RuneCenter = (() => {
       return p;
     },
     applyHashParams(params) {
+      const season = params.get('season');
+      if (season === 's0' || season === 's1') setSeason(season, false);
       const mode = params.get('mode');
       const job = params.get('job');
       const cmp = params.get('cmp');

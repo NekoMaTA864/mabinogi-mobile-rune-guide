@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f2f4f8">
-<title>瑪奇 Mobile｜S1 多功能工具站</title>
+<title>瑪奇 Mobile｜多功能工具站</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-5">
+<link rel="stylesheet" href="styles.css?v=20261126-6">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -23,21 +23,21 @@
     </div>
     <div class="header-top">
       <div>
-        <h1>瑪奇 Mobile｜S1 多功能工具站</h1>
-        <p class="header-desc">免登入純功能查詢站，整合 21 職符文指南與 10 格試配檢核、以物易物雙向快查、台北時間即時排程與中文社群工具箱。</p>
+        <h1>瑪奇 Mobile｜多功能工具站</h1>
+        <p class="header-desc">免登入純功能查詢站，整合台北時間即時排程、S1／S0 全職業符文指南與 10 格試配、以物易物雙向快查與中文社群工具箱。</p>
       </div>
       <button id="theme-toggle" class="tool-btn" type="button" aria-pressed="false">深色模式</button>
     </div>
 
     <nav class="primary-nav" role="tablist" aria-label="主功能分頁">
-      <button class="primary-tab" role="tab" data-primary="runes" aria-selected="true" type="button">
-        符文中心 <span class="tab-pill">21 職</span>
+      <button class="primary-tab" role="tab" data-primary="schedule" aria-selected="true" type="button">
+        即時排程 <span class="tab-pill">台北時間</span>
+      </button>
+      <button class="primary-tab" role="tab" data-primary="runes" aria-selected="false" type="button">
+        符文中心 <span class="tab-pill">S1／S0</span>
       </button>
       <button class="primary-tab" role="tab" data-primary="barter" aria-selected="false" type="button">
         以物易物 <span class="tab-pill">雙向快查</span>
-      </button>
-      <button class="primary-tab" role="tab" data-primary="schedule" aria-selected="false" type="button">
-        即時排程 <span class="tab-pill">台北時間</span>
       </button>
       <button class="primary-tab" role="tab" data-primary="toolbox" aria-selected="false" type="button">
         社群工具箱 <span class="tab-pill">20 站</span>
@@ -47,8 +47,48 @@
 
   <noscript>請啟用 JavaScript 以使用互動查詢與即時倒數功能。</noscript>
 
-  <!-- ===== 主分頁 1：符文中心 ===== -->
-  <section id="tab-runes">
+  <!-- ===== 主分頁 1（預設首頁）：即時排程 ===== -->
+  <section id="tab-schedule" class="surface-box">
+    <div class="clock-banner">
+      <div>
+        <div id="clock-main" class="clock-main">載入台北時間中…</div>
+        <div id="clock-sub" class="clock-sub"></div>
+      </div>
+      <span class="rc-tag is-live">純前端即時計算</span>
+    </div>
+
+    <div id="timer-grid" class="timer-grid"></div>
+
+    <div class="schedule-split">
+      <div>
+        <h2 style="margin:0 0 10px; font-size:19px;">週幾地下城排程（每日 06:00 切換）</h2>
+        <div id="dungeon-hero" class="dungeon-hero"></div>
+        <div class="rw-table-wrap">
+          <table class="rw-table">
+            <thead>
+              <tr>
+                <th scope="col">星期</th>
+                <th scope="col">地下城名稱</th>
+                <th scope="col">主要核心獎勵</th>
+              </tr>
+            </thead>
+            <tbody id="dungeon-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h2 style="margin:0 0 10px; font-size:19px;">深淵黑洞即時回報站</h2>
+        <p class="panel-meta" style="margin:0 0 12px;">
+          動態黑洞開門時間仰賴社群即時伺服器回報，純靜態站無法自行攔截，以下列出台服玩家常用的即時追蹤站。
+        </p>
+        <div id="blackhole-links" class="quick-links-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 主分頁 2：符文中心（支援 S1 / S0） ===== -->
+  <section id="tab-runes" hidden>
     <div class="top-bar">
       <div class="mode-tabs" role="tablist" aria-label="符文中心子功能">
         <button class="mode-tab" role="tab" data-mode="jobs" aria-selected="true" type="button">依職業查配裝</button>
@@ -56,22 +96,29 @@
         <button class="mode-tab" role="tab" data-mode="reverse" aria-selected="false" type="button">反查符文／全圖鑑</button>
         <button class="mode-tab" role="tab" data-mode="guide" aria-selected="false" type="button">S1 機制與符文之語</button>
       </div>
-      <div class="quick-search-wrap">
-        <input id="quick-search" name="rune-search" autocomplete="off" class="search-input" type="search" placeholder="快搜符文名、別名或效果（如 劍舞、破防）…" aria-label="快速搜尋符文">
+
+      <div class="panel-tools">
+        <div class="season-switch" role="group" aria-label="切換符文賽季">
+          <button class="season-btn" data-season="s1" aria-pressed="true" type="button">S1 賽季一</button>
+          <button class="season-btn" data-season="s0" aria-pressed="false" type="button">S0 賽季零</button>
+        </div>
+        <div class="quick-search-wrap" style="max-width:290px;">
+          <input id="quick-search" name="rune-search" autocomplete="off" class="search-input" type="search" placeholder="快搜符文名、別名或效果…" aria-label="快速搜尋符文">
+        </div>
       </div>
     </div>
 
-    <!-- 子視圖 1A：依職業查配裝（預設收合） -->
+    <!-- 子視圖 2A：依職業查配裝（2×3 整齊排列，每卡單排按鈕） -->
     <section id="view-jobs">
       <nav id="jobs" class="jobs-nav" aria-label="依職系選擇職業"></nav>
       <article id="panel" class="panel-box" hidden aria-live="polite"></article>
     </section>
 
-    <!-- 子視圖 1B：10 格試配檢核器（Phase 2） -->
+    <!-- 子視圖 2B：10 格試配檢核器 -->
     <section id="view-builder" class="surface-box" hidden>
       <div class="builder-toolbar">
         <div class="builder-job-wrap">
-          <label for="builder-job">試配職業</label>
+          <label for="builder-job">試配職業（S1 機制）</label>
           <select id="builder-job" class="tool-select"></select>
         </div>
         <div class="panel-tools">
@@ -87,7 +134,7 @@
       <div id="builder-slots" class="quad-grid"></div>
     </section>
 
-    <!-- 子視圖 1C：反查符文與全圖鑑 -->
+    <!-- 子視圖 2C：反查符文與全圖鑑 -->
     <section id="view-reverse" class="surface-box" hidden>
       <div class="filter-bar">
         <div class="filter-row" id="slot-filters" aria-label="依部位篩選"></div>
@@ -103,7 +150,7 @@
       <div id="catalog-grid" class="catalog-grid"></div>
     </section>
 
-    <!-- 子視圖 1D：S1 機制與符文之語速查 -->
+    <!-- 子視圖 2D：S1 機制與符文之語速查 -->
     <section id="view-guide" class="surface-box" hidden>
       <div class="guide-grid">
         <div class="guide-card">
@@ -126,7 +173,7 @@
         <div class="guide-card">
           <h3>譯名現況與比對方式</h3>
           <ul>
-            <li>截至 2026/11/25 台服 S1 開季，全網尚未出現經台服客戶端逐格校對的正式 S1 完整譯名表，各站均含韓翻中暫譯。</li>
+            <li>S0 符文已對照台服客戶端正式名稱；S1 因剛開季，全網尚無經客戶端逐格校對的正式完整清單，各站均含韓翻中暫譯。</li>
             <li>本站已整合巴哈姆特、愛爾琳網、模賓報、星月酒館等常見別名，搜尋任一譯名、韓文原名或效果關鍵字皆可命中。</li>
             <li>對照遊戲圖鑑時，建議優先比對<strong>懸停顯示的中文數值效果與韓文原名</strong>，避免受在地化名詞差異影響。</li>
           </ul>
@@ -156,7 +203,7 @@
     </section>
   </section>
 
-  <!-- ===== 主分頁 2：以物易物雙向快查（Phase 2，純查表、零個人庫存） ===== -->
+  <!-- ===== 主分頁 3：以物易物雙向快查 ===== -->
   <section id="tab-barter" class="surface-box" hidden>
     <div class="panel-head">
       <div>
@@ -218,47 +265,7 @@
     <p id="shop-gold-total" class="gold-summary"></p>
   </section>
 
-  <!-- ===== 主分頁 3：即時排程 ===== -->
-  <section id="tab-schedule" class="surface-box" hidden>
-    <div class="clock-banner">
-      <div>
-        <div id="clock-main" class="clock-main">載入台北時間中…</div>
-        <div id="clock-sub" class="clock-sub"></div>
-      </div>
-      <span class="rc-tag is-live">純前端即時計算</span>
-    </div>
-
-    <div id="timer-grid" class="timer-grid"></div>
-
-    <div class="schedule-split">
-      <div>
-        <h2 style="margin:0 0 10px; font-size:19px;">週幾地下城排程（每日 06:00 切換）</h2>
-        <div id="dungeon-hero" class="dungeon-hero"></div>
-        <div class="rw-table-wrap">
-          <table class="rw-table">
-            <thead>
-              <tr>
-                <th scope="col">星期</th>
-                <th scope="col">地下城名稱</th>
-                <th scope="col">主要核心獎勵</th>
-              </tr>
-            </thead>
-            <tbody id="dungeon-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div>
-        <h2 style="margin:0 0 10px; font-size:19px;">深淵黑洞即時回報站</h2>
-        <p class="panel-meta" style="margin:0 0 12px;">
-          動態黑洞開門時間仰賴社群即時伺服器回報，純靜態站無法自行攔截，以下列出台服玩家常用的即時追蹤站。
-        </p>
-        <div id="blackhole-links" class="quick-links-list"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 主分頁 4：社群工具箱 ===== -->
+  <!-- ===== 主分頁 4：社群工具箱（移除「全部」與搜尋框，直接依 6 分類挑選） ===== -->
   <section id="tab-toolbox" class="surface-box" hidden>
     <div id="workbench-box" class="workbench-box">
       <div class="workbench-head">
@@ -286,9 +293,8 @@
     <div class="panel-head" style="margin-top:6px;">
       <div>
         <h2 style="font-size:19px;">中文社群網站與工具目錄</h2>
-        <p class="panel-meta">整理自巴哈姆特《瑪奇 Mobile》哈啦板與實地查核之繁中玩家資源，依用途分類快查。</p>
+        <p class="panel-meta">依用途點選下方分類檢視繁中玩家資源。</p>
       </div>
-      <input id="tool-search" name="tool-search" autocomplete="off" class="search-input" style="max-width:280px;" type="search" placeholder="搜尋工具名稱、功能或關鍵字…" aria-label="搜尋社群工具">
     </div>
 
     <div class="filter-bar">
@@ -304,28 +310,30 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-5"></script>
-<script src="data/schedule.js?v=20261126-5"></script>
-<script src="data/tools-catalog.js?v=20261126-5"></script>
-<script src="data/barter.js?v=20261126-5"></script>
-<script src="modules/build-checker.js?v=20261126-5"></script>
-<script src="modules/rune-center.js?v=20261126-5"></script>
-<script src="modules/barter-finder.js?v=20261126-5"></script>
-<script src="modules/timer-board.js?v=20261126-5"></script>
-<script src="modules/toolbox.js?v=20261126-5"></script>
+<script src="runes.js?v=20261126-6"></script>
+<script src="data/runes-s0.js?v=20261126-6"></script>
+<script src="data/schedule.js?v=20261126-6"></script>
+<script src="data/tools-catalog.js?v=20261126-6"></script>
+<script src="data/barter.js?v=20261126-6"></script>
+<script src="modules/build-checker.js?v=20261126-6"></script>
+<script src="modules/rune-center.js?v=20261126-6"></script>
+<script src="modules/barter-finder.js?v=20261126-6"></script>
+<script src="modules/timer-board.js?v=20261126-6"></script>
+<script src="modules/toolbox.js?v=20261126-6"></script>
 <script>
 (() => {
   const tabSections = {
+    schedule: document.querySelector('#tab-schedule'),
     runes: document.querySelector('#tab-runes'),
     barter: document.querySelector('#tab-barter'),
-    schedule: document.querySelector('#tab-schedule'),
     toolbox: document.querySelector('#tab-toolbox')
   };
   const themeToggle = document.querySelector('#theme-toggle');
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   const toastEl = document.querySelector('#toast');
 
-  let currentPrimaryTab = 'runes';
+  // 預設首頁：即時排程
+  let currentPrimaryTab = 'schedule';
   let toastTimer = null;
 
   function el(tag, className, text) {
@@ -362,6 +370,8 @@
     let params;
     if (currentPrimaryTab === 'runes') {
       params = RuneCenter.getHashParams();
+    } else if (currentPrimaryTab === 'schedule') {
+      params = new URLSearchParams();
     } else {
       params = new URLSearchParams();
       params.set('tab', currentPrimaryTab);
@@ -374,7 +384,7 @@
   }
 
   function setPrimaryTab(tab, updateHash = true) {
-    if (!tabSections[tab]) tab = 'runes';
+    if (!tabSections[tab]) tab = 'schedule';
     currentPrimaryTab = tab;
     RuneCenter.hideTooltip(true);
 
@@ -397,7 +407,10 @@
 
   function restoreFromHash() {
     const raw = location.hash.replace(/^#/, '');
-    if (!raw) return;
+    if (!raw) {
+      setPrimaryTab('schedule', false);
+      return;
+    }
     const decoded = decodeURIComponent(raw);
     if (RuneCenter.allJobs.includes(decoded)) {
       RuneCenter.openJob(decoded, null, false);
@@ -405,11 +418,14 @@
     }
     const params = new URLSearchParams(raw);
     const tab = params.get('tab');
-    if (tab === 'barter' || tab === 'schedule' || tab === 'toolbox') {
+    const hasRuneParams = params.has('job') || params.has('mode') || params.has('season');
+    if (tab === 'barter' || tab === 'toolbox' || tab === 'schedule') {
       setPrimaryTab(tab, false);
-    } else {
+    } else if (tab === 'runes' || hasRuneParams) {
       setPrimaryTab('runes', false);
       RuneCenter.applyHashParams(params);
+    } else {
+      setPrimaryTab('schedule', false);
     }
   }
 
