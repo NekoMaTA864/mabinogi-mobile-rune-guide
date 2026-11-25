@@ -3,29 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f2f4f8">
 <title>瑪奇 Mobile｜S1 多功能工具站</title>
-<link rel="stylesheet" href="styles.css?v=20261125-4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261126-5">
 </head>
 <body>
-<main>
+<a class="skip-link" href="#main-content">跳至主要內容</a>
+
+<main id="main-content">
   <header class="site-header">
+    <div class="masthead-rule" aria-hidden="true">
+      <svg class="masthead-sigil" width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L20 12L12 22L4 12L12 2Z" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+      </svg>
+    </div>
     <div class="header-top">
       <div>
         <h1>瑪奇 Mobile｜S1 多功能工具站</h1>
-        <p>純功能性、免登入、零個人資料儲存 · 整合 S1 全職業符文中心、台北時間即時排程與中文社群工具箱。</p>
+        <p class="header-desc">免登入純功能查詢站，整合 21 職符文指南與 10 格試配檢核、以物易物雙向快查、台北時間即時排程與中文社群工具箱。</p>
       </div>
       <button id="theme-toggle" class="tool-btn" type="button" aria-pressed="false">深色模式</button>
     </div>
 
     <nav class="primary-nav" role="tablist" aria-label="主功能分頁">
       <button class="primary-tab" role="tab" data-primary="runes" aria-selected="true" type="button">
-        符文中心 <span class="tab-pill">21 職・150 符文</span>
+        符文中心 <span class="tab-pill">21 職</span>
+      </button>
+      <button class="primary-tab" role="tab" data-primary="barter" aria-selected="false" type="button">
+        以物易物 <span class="tab-pill">雙向快查</span>
       </button>
       <button class="primary-tab" role="tab" data-primary="schedule" aria-selected="false" type="button">
         即時排程 <span class="tab-pill">台北時間</span>
       </button>
       <button class="primary-tab" role="tab" data-primary="toolbox" aria-selected="false" type="button">
-        社群工具箱 <span class="tab-pill">20 工具</span>
+        社群工具箱 <span class="tab-pill">20 站</span>
       </button>
     </nav>
   </header>
@@ -37,11 +52,12 @@
     <div class="top-bar">
       <div class="mode-tabs" role="tablist" aria-label="符文中心子功能">
         <button class="mode-tab" role="tab" data-mode="jobs" aria-selected="true" type="button">依職業查配裝</button>
+        <button class="mode-tab" role="tab" data-mode="builder" aria-selected="false" type="button">10 格試配檢核</button>
         <button class="mode-tab" role="tab" data-mode="reverse" aria-selected="false" type="button">反查符文／全圖鑑</button>
         <button class="mode-tab" role="tab" data-mode="guide" aria-selected="false" type="button">S1 機制與符文之語</button>
       </div>
       <div class="quick-search-wrap">
-        <input id="quick-search" class="search-input" type="search" placeholder="快搜符文（中／韓／別名／效果，如 劍舞、破防）" aria-label="快速搜尋符文">
+        <input id="quick-search" name="rune-search" autocomplete="off" class="search-input" type="search" placeholder="快搜符文名、別名或效果（如 劍舞、破防）…" aria-label="快速搜尋符文">
       </div>
     </div>
 
@@ -51,7 +67,27 @@
       <article id="panel" class="panel-box" hidden aria-live="polite"></article>
     </section>
 
-    <!-- 子視圖 1B：反查符文與全圖鑑 -->
+    <!-- 子視圖 1B：10 格試配檢核器（Phase 2） -->
+    <section id="view-builder" class="surface-box" hidden>
+      <div class="builder-toolbar">
+        <div class="builder-job-wrap">
+          <label for="builder-job">試配職業</label>
+          <select id="builder-job" class="tool-select"></select>
+        </div>
+        <div class="panel-tools">
+          <button id="builder-fill-t0" class="tool-btn is-primary" type="button">套用該職 T0 預設</button>
+          <button id="builder-clear" class="tool-btn" type="button">清空重選</button>
+          <button id="builder-copy" class="tool-btn" type="button">複製試配摘要</button>
+          <button id="builder-share" class="tool-btn" type="button">複製分享連結</button>
+        </div>
+      </div>
+
+      <div id="builder-report" class="builder-report" aria-live="polite"></div>
+      <div id="builder-preview-chips" class="builder-preview-bar" aria-label="已選符文懸停預覽"></div>
+      <div id="builder-slots" class="quad-grid"></div>
+    </section>
+
+    <!-- 子視圖 1C：反查符文與全圖鑑 -->
     <section id="view-reverse" class="surface-box" hidden>
       <div class="filter-bar">
         <div class="filter-row" id="slot-filters" aria-label="依部位篩選"></div>
@@ -67,32 +103,32 @@
       <div id="catalog-grid" class="catalog-grid"></div>
     </section>
 
-    <!-- 子視圖 1C：S1 機制與符文之語速查 -->
+    <!-- 子視圖 1D：S1 機制與符文之語速查 -->
     <section id="view-guide" class="surface-box" hidden>
       <div class="guide-grid">
         <div class="guide-card">
-          <h3>白星（S0）vs 黃星（S1）換裝提醒</h3>
+          <h3>白星（S0）與黃星（S1）換裝重點</h3>
           <ul>
             <li><strong>星級區分</strong>：S0 舊符文為白星（最高 6★ 傳說）；S1 新符文為黃星（2★ 高級～8★ 傳說／神話）。</li>
-            <li><strong>8★ 新機制</strong>：8★ 傳說符文起適用「記憶刻印」、「超越刻印」與「符文之語」；8★ 傳說飾品超越每階額外 +1.5% 最終傷害。</li>
-            <li><strong>過渡避坑</strong>：新版黃星 6★（菁英）數值與全技能加成通常不及舊白星 6★ 傳說，未湊齊高星 S1 畢業裝前切勿盲拆舊傳說（如舊徽章「絢爛」可先沿用）。</li>
+            <li><strong>8★ 新機制</strong>：8★ 傳說符文起適用記憶刻印、超越刻印與符文之語；8★ 傳說飾品超越每階額外 +1.5% 最終傷害。</li>
+            <li><strong>過渡避坑</strong>：新版黃星 6★ 菁英數值常低於舊白星 6★ 傳說，尚未湊齊高星 S1 畢業裝前切勿盲拆舊傳說（如舊徽章「絢爛」可先沿用）。</li>
           </ul>
         </div>
         <div class="guide-card">
           <h3>S1 核心關鍵字速懂</h3>
           <ul>
-            <li><strong>覺醒</strong>：8★ 徽章攻擊時機率進入 20～35 秒爆發期（冷卻 90 秒）；防具「壓倒性的力量」「細膩的手法」在覺醒期間數值翻倍。</li>
-            <li><strong>缺陷</strong>：高數值附帶負面效果（如隱士、鬥士、暴君、古代守護者、近衛兵）；裝備神話防具「永恆」可移除全身所有缺陷並增傷 +15%。</li>
-            <li><strong>過載（團本唯一）</strong>：蒼白閃光、搖曳之火屬巨神碎片唯一系列（擇一生效），依充能轉電力於覺醒／大招時爆發。</li>
-            <li><strong>異常聯動</strong>：武器「烈焰」配防具「野火」（燃燒＋暴率）、武器「結晶」配防具「雪山」（冰凍＋追加打擊）。</li>
+            <li><strong>覺醒</strong>：8★ 徽章攻擊時機率觸發 20～35 秒爆發期（冷卻 90 秒）；防具「壓倒性的力量」「細膩的手法」在覺醒期間數值翻倍。</li>
+            <li><strong>缺陷</strong>：高數值附帶負面效果（隱士、鬥士、暴君、古代守護者、近衛兵）；裝備神話防具「永恆」可消除全身所有缺陷並增傷 +15%。</li>
+            <li><strong>過載（團本唯一）</strong>：蒼白閃光、搖曳之火屬巨神碎片唯一系列，僅能生效 1 顆，依充能轉電力於覺醒或大招時爆發。</li>
+            <li><strong>異常聯動</strong>：武器「烈焰」搭防具「野火」（燃燒＋暴率）、武器「結晶」搭防具「雪山」（冰凍＋追加打擊）。</li>
           </ul>
         </div>
         <div class="guide-card">
           <h3>譯名現況與比對方式</h3>
           <ul>
-            <li>截至 2026/11/25 台服 S1 開季當日，全網尚未出現經台服客戶端逐格校對的官方 S1 完整譯名表，各攻略站均含韓翻中暫譯。</li>
-            <li>本站已整合巴哈姆特、愛爾琳網、模賓報、星月酒館等社群常見別名，在「反查符文」搜尋任一譯名、韓文原名或效果關鍵字皆可命中。</li>
-            <li>建議以<strong>滑鼠懸停顯示的中文數值效果＋韓文原名</strong>直接比對遊戲內圖鑑，不怕台服正式譯名微調。</li>
+            <li>截至 2026/11/25 台服 S1 開季，全網尚未出現經台服客戶端逐格校對的正式 S1 完整譯名表，各站均含韓翻中暫譯。</li>
+            <li>本站已整合巴哈姆特、愛爾琳網、模賓報、星月酒館等常見別名，搜尋任一譯名、韓文原名或效果關鍵字皆可命中。</li>
+            <li>對照遊戲圖鑑時，建議優先比對<strong>懸停顯示的中文數值效果與韓文原名</strong>，避免受在地化名詞差異影響。</li>
           </ul>
         </div>
       </div>
@@ -100,9 +136,9 @@
       <div class="panel-head" style="margin-top:4px;">
         <div>
           <h2 style="font-size:20px;">S1 8★ 傳說飾品「符文之語」參考表</h2>
-          <p class="panel-meta">收集對應 5 顆 8★ 傳說飾品即可啟動額外屬性加成（實際遊戲內譯名請以台服圖鑑為準）。</p>
+          <p class="panel-meta">收集對應 5 顆 8★ 傳說飾品即可啟動額外屬性加成，實際譯名以台服遊戲圖鑑為準。</p>
         </div>
-        <input id="rw-search" class="search-input" style="max-width:260px;" type="search" placeholder="篩選職系、名稱或符文…" aria-label="篩選符文之語">
+        <input id="rw-search" name="rw-search" autocomplete="off" class="search-input" style="max-width:260px;" type="search" placeholder="篩選職系、名稱或符文…" aria-label="篩選符文之語">
       </div>
       <div class="rw-table-wrap">
         <table class="rw-table">
@@ -120,21 +156,83 @@
     </section>
   </section>
 
-  <!-- ===== 主分頁 2：即時排程 ===== -->
+  <!-- ===== 主分頁 2：以物易物雙向快查（Phase 2，純查表、零個人庫存） ===== -->
+  <section id="tab-barter" class="surface-box" hidden>
+    <div class="panel-head">
+      <div>
+        <h2>以物易物雙向快查</h2>
+        <p class="panel-meta">純查表與金幣試算，不儲存任何個人庫存或打卡進度。快速反查手邊材料可換項目與 3 級設計圖來源。</p>
+      </div>
+      <div class="panel-tools">
+        <input id="barter-search" name="barter-search" autocomplete="off" class="search-input" style="max-width:270px;" type="search" placeholder="搜尋材料、產物或 NPC（如 聖水、蜘蛛網）…" aria-label="搜尋以物易物路線">
+        <a class="action-link" href="https://carey1029.github.io/mabinogimobile-exchange/" target="_blank" rel="noopener noreferrer">完整全城鎮手冊 ↗</a>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-row" id="barter-dir-filters" aria-label="搜尋方向"></div>
+      <div class="filter-row" id="barter-town-filters" aria-label="城鎮篩選"></div>
+      <div class="filter-row" id="barter-cat-filters" aria-label="用途分類"></div>
+    </div>
+    <div class="catalog-meta">
+      <span id="barter-count"></span>
+    </div>
+    <div class="rw-table-wrap">
+      <table class="rw-table">
+        <thead>
+          <tr>
+            <th scope="col">城鎮與 NPC</th>
+            <th scope="col">投入材料</th>
+            <th scope="col">兌換產物</th>
+            <th scope="col">限購</th>
+            <th scope="col">重點備註</th>
+          </tr>
+        </thead>
+        <tbody id="barter-body"></tbody>
+      </table>
+    </div>
+
+    <div class="shop-calc-head">
+      <div>
+        <h2 style="margin:0; font-size:20px;">每日／每週商店重點與金幣試算</h2>
+        <p class="panel-meta">調整試算份數（例如角色數）快速估算限購預算，不寫入任何存檔。</p>
+      </div>
+      <div class="mult-wrap">
+        <label for="shop-multiplier">試算倍數（角色數）</label>
+        <input id="shop-multiplier" name="shop-multiplier" type="number" inputmode="numeric" min="1" max="20" value="1" class="num-input">
+      </div>
+    </div>
+    <div class="rw-table-wrap">
+      <table class="rw-table">
+        <thead>
+          <tr>
+            <th scope="col">商店項目</th>
+            <th scope="col">優先度</th>
+            <th scope="col">重置週期</th>
+            <th scope="col">成本試算</th>
+          </tr>
+        </thead>
+        <tbody id="shop-body"></tbody>
+      </table>
+    </div>
+    <p id="shop-gold-total" class="gold-summary"></p>
+  </section>
+
+  <!-- ===== 主分頁 3：即時排程 ===== -->
   <section id="tab-schedule" class="surface-box" hidden>
     <div class="clock-banner">
       <div>
         <div id="clock-main" class="clock-main">載入台北時間中…</div>
         <div id="clock-sub" class="clock-sub"></div>
       </div>
-      <span class="rc-tag is-live">純前端即時計算・免登入</span>
+      <span class="rc-tag is-live">純前端即時計算</span>
     </div>
 
     <div id="timer-grid" class="timer-grid"></div>
 
     <div class="schedule-split">
       <div>
-        <h2 style="margin:0 0 10px; font-size:20px;">週幾地下城排程（每日 06:00 切換）</h2>
+        <h2 style="margin:0 0 10px; font-size:19px;">週幾地下城排程（每日 06:00 切換）</h2>
         <div id="dungeon-hero" class="dungeon-hero"></div>
         <div class="rw-table-wrap">
           <table class="rw-table">
@@ -151,22 +249,22 @@
       </div>
 
       <div>
-        <h2 style="margin:0 0 10px; font-size:20px;">深淵黑洞即時回報站</h2>
+        <h2 style="margin:0 0 10px; font-size:19px;">深淵黑洞即時回報站</h2>
         <p class="panel-meta" style="margin:0 0 12px;">
-          動態黑洞開門時間與各分流回報仰賴社群即時伺服器，純靜態站無法自行攔截，以下整理台服玩家最常用的即時追蹤站：
+          動態黑洞開門時間仰賴社群即時伺服器回報，純靜態站無法自行攔截，以下列出台服玩家常用的即時追蹤站。
         </p>
         <div id="blackhole-links" class="quick-links-list"></div>
       </div>
     </div>
   </section>
 
-  <!-- ===== 主分頁 3：社群工具箱 ===== -->
+  <!-- ===== 主分頁 4：社群工具箱 ===== -->
   <section id="tab-toolbox" class="surface-box" hidden>
     <div id="workbench-box" class="workbench-box">
       <div class="workbench-head">
         <div>
           <h2>站內沙盒工具工作台</h2>
-          <p class="panel-meta" style="margin:2px 0 0;">點選下方輕量靜態工具可直接在站內預覽（預設收合以保持首頁高速載入；若來源站限制嵌入請點右側新分頁開啟）。</p>
+          <p class="panel-meta" style="margin:2px 0 0;">點選下方輕量靜態工具可直接在站內預覽；若來源站限制嵌入，請使用右側「於新分頁開啟」。</p>
         </div>
         <button id="wb-toggle" class="tool-btn" type="button" aria-pressed="false">展開站內預覽</button>
       </div>
@@ -187,10 +285,10 @@
 
     <div class="panel-head" style="margin-top:6px;">
       <div>
-        <h2 style="font-size:20px;">中文社群網站與工具目錄</h2>
+        <h2 style="font-size:19px;">中文社群網站與工具目錄</h2>
         <p class="panel-meta">整理自巴哈姆特《瑪奇 Mobile》哈啦板與實地查核之繁中玩家資源，依用途分類快查。</p>
       </div>
-      <input id="tool-search" class="search-input" style="max-width:280px;" type="search" placeholder="搜尋工具名稱、功能或關鍵字…" aria-label="搜尋社群工具">
+      <input id="tool-search" name="tool-search" autocomplete="off" class="search-input" style="max-width:280px;" type="search" placeholder="搜尋工具名稱、功能或關鍵字…" aria-label="搜尋社群工具">
     </div>
 
     <div class="filter-bar">
@@ -206,20 +304,25 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261125-4"></script>
-<script src="data/schedule.js?v=20261125-4"></script>
-<script src="data/tools-catalog.js?v=20261125-4"></script>
-<script src="modules/rune-center.js?v=20261125-4"></script>
-<script src="modules/timer-board.js?v=20261125-4"></script>
-<script src="modules/toolbox.js?v=20261125-4"></script>
+<script src="runes.js?v=20261126-5"></script>
+<script src="data/schedule.js?v=20261126-5"></script>
+<script src="data/tools-catalog.js?v=20261126-5"></script>
+<script src="data/barter.js?v=20261126-5"></script>
+<script src="modules/build-checker.js?v=20261126-5"></script>
+<script src="modules/rune-center.js?v=20261126-5"></script>
+<script src="modules/barter-finder.js?v=20261126-5"></script>
+<script src="modules/timer-board.js?v=20261126-5"></script>
+<script src="modules/toolbox.js?v=20261126-5"></script>
 <script>
 (() => {
   const tabSections = {
     runes: document.querySelector('#tab-runes'),
+    barter: document.querySelector('#tab-barter'),
     schedule: document.querySelector('#tab-schedule'),
     toolbox: document.querySelector('#tab-toolbox')
   };
   const themeToggle = document.querySelector('#theme-toggle');
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
   const toastEl = document.querySelector('#toast');
 
   let currentPrimaryTab = 'runes';
@@ -244,6 +347,7 @@
     document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
     themeToggle.setAttribute('aria-pressed', String(isDark));
     themeToggle.textContent = isDark ? '淺色模式' : '深色模式';
+    if (themeMeta) themeMeta.setAttribute('content', isDark ? '#0d131d' : '#f2f4f8');
   }
   try {
     if (localStorage.getItem('mabi-rune-guide-theme') === 'dark') applyTheme('dark');
@@ -301,7 +405,7 @@
     }
     const params = new URLSearchParams(raw);
     const tab = params.get('tab');
-    if (tab === 'schedule' || tab === 'toolbox') {
+    if (tab === 'barter' || tab === 'schedule' || tab === 'toolbox') {
       setPrimaryTab(tab, false);
     } else {
       setPrimaryTab('runes', false);
@@ -311,6 +415,7 @@
 
   const appCtx = { el, showToast, syncHash, setPrimaryTab };
   RuneCenter.init(appCtx);
+  BarterFinder.init(appCtx);
   TimerBoard.init(appCtx);
   Toolbox.init(appCtx);
 

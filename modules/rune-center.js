@@ -50,7 +50,7 @@ window.RuneCenter = (() => {
   const jobButtons = new Map();
 
   // DOM 節點
-  let viewJobs, viewReverse, viewGuide, panel, tooltip, quickSearch, catalogGrid, catalogCount, catalogSort, rwBody, rwSearch;
+  let viewJobs, viewReverse, viewBuilder, viewGuide, panel, tooltip, quickSearch, catalogGrid, catalogCount, catalogSort, rwBody, rwSearch;
 
   // 狀態
   let currentSubMode = 'jobs';
@@ -345,9 +345,13 @@ window.RuneCenter = (() => {
     });
     viewJobs.hidden = mode !== 'jobs';
     viewReverse.hidden = mode !== 'reverse';
+    viewBuilder.hidden = mode !== 'builder';
     viewGuide.hidden = mode !== 'guide';
     if (mode === 'reverse') renderCatalog();
     if (mode === 'guide') renderRunewords();
+    if (mode === 'builder' && currentJob && window.BuildChecker) {
+      BuildChecker.setJob(currentJob);
+    }
     if (updateHash) app.syncHash();
   }
 
@@ -481,7 +485,9 @@ window.RuneCenter = (() => {
 
       const head = el('div', 'rc-head');
       head.append(el('h3', 'rc-title', info.zh));
-      head.append(el('span', 'rc-kr', key));
+      const krSpan = el('span', 'rc-kr', key);
+      krSpan.setAttribute('translate', 'no');
+      head.append(krSpan);
       card.append(head);
 
       if (aliases.length) card.append(el('p', 'rc-aliases', `社群常見別名：${aliases.join('、')}`));
@@ -569,7 +575,9 @@ window.RuneCenter = (() => {
 
     const head = el('div', 'tt-head');
     head.append(el('span', 'tt-title', info.zh));
-    head.append(el('span', 'tt-kr', key));
+    const krSpan = el('span', 'tt-kr', key);
+    krSpan.setAttribute('translate', 'no');
+    head.append(krSpan);
     tooltip.append(head);
 
     if (aliases.length) tooltip.append(el('p', 'tt-aliases', `社群別名：${aliases.join('、')}`));
@@ -596,7 +604,7 @@ window.RuneCenter = (() => {
       if (!summaryParts.length && usage.noteRef.length) summaryParts.push(`搭配提及 × ${usage.noteRef.length}`);
       uRow.append(el('span', '', `全職採用：${summaryParts.join('｜') || '—'}`));
 
-      const jumpBtn = el('button', 'tt-jump-btn', '反查採用職業 →');
+      const jumpBtn = el('button', 'tt-jump-btn', '反查採用職業');
       jumpBtn.type = 'button';
       jumpBtn.onclick = (e) => {
         e.stopPropagation();
@@ -664,6 +672,42 @@ window.RuneCenter = (() => {
     tooltip.hidden = true;
   }
 
+  function attachTooltipContainer(container) {
+    container.addEventListener('mouseover', (e) => {
+      const chip = e.target.closest('.rune-chip');
+      if (!chip || pinnedChip) return;
+      if (activeChip === chip && !tooltip.hidden) return;
+      showTooltip(chip, false);
+    });
+
+    container.addEventListener('mouseout', (e) => {
+      const chip = e.target.closest('.rune-chip');
+      if (!chip || pinnedChip) return;
+      if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
+      hideTooltip(false);
+    });
+
+    container.addEventListener('focusin', (e) => {
+      const chip = e.target.closest('.rune-chip');
+      if (!chip || pinnedChip) return;
+      showTooltip(chip, false);
+    });
+
+    container.addEventListener('focusout', (e) => {
+      const chip = e.target.closest('.rune-chip');
+      if (!chip || pinnedChip) return;
+      hideTooltip(false);
+    });
+
+    container.addEventListener('click', (e) => {
+      const chip = e.target.closest('.rune-chip');
+      if (!chip) return;
+      e.stopPropagation();
+      if (pinnedChip === chip) hideTooltip(true);
+      else showTooltip(chip, true);
+    });
+  }
+
   function bindEvents() {
     document.querySelectorAll('#tab-runes .mode-tab').forEach(btn => {
       btn.onclick = () => setSubMode(btn.dataset.mode);
@@ -679,40 +723,7 @@ window.RuneCenter = (() => {
     catalogSort.onchange = renderCatalog;
     rwSearch.addEventListener('input', renderRunewords);
 
-    // 穩定 mouseover/mouseout + relatedTarget 檢查
-    panel.addEventListener('mouseover', (e) => {
-      const chip = e.target.closest('.rune-chip');
-      if (!chip || pinnedChip) return;
-      if (activeChip === chip && !tooltip.hidden) return;
-      showTooltip(chip, false);
-    });
-
-    panel.addEventListener('mouseout', (e) => {
-      const chip = e.target.closest('.rune-chip');
-      if (!chip || pinnedChip) return;
-      if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
-      hideTooltip(false);
-    });
-
-    panel.addEventListener('focusin', (e) => {
-      const chip = e.target.closest('.rune-chip');
-      if (!chip || pinnedChip) return;
-      showTooltip(chip, false);
-    });
-
-    panel.addEventListener('focusout', (e) => {
-      const chip = e.target.closest('.rune-chip');
-      if (!chip || pinnedChip) return;
-      hideTooltip(false);
-    });
-
-    panel.addEventListener('click', (e) => {
-      const chip = e.target.closest('.rune-chip');
-      if (!chip) return;
-      e.stopPropagation();
-      if (pinnedChip === chip) hideTooltip(true);
-      else showTooltip(chip, true);
-    });
+    attachTooltipContainer(panel);
 
     document.addEventListener('click', (e) => {
       if (pinnedChip && !tooltip.contains(e.target) && !e.target.closest('.rune-chip')) {
@@ -737,6 +748,7 @@ window.RuneCenter = (() => {
     app = ctx;
     viewJobs = document.querySelector('#view-jobs');
     viewReverse = document.querySelector('#view-reverse');
+    viewBuilder = document.querySelector('#view-builder');
     viewGuide = document.querySelector('#view-guide');
     panel = document.querySelector('#panel');
     tooltip = document.querySelector('#rune-tooltip');
@@ -767,6 +779,15 @@ window.RuneCenter = (() => {
 
     initCatalogFilters();
     bindEvents();
+
+    if (window.BuildChecker) {
+      BuildChecker.init(app, {
+        allJobs,
+        runePattern,
+        safeRunewords,
+        attachTooltipContainer
+      });
+    }
   }
 
   return {
@@ -776,6 +797,9 @@ window.RuneCenter = (() => {
     openJob,
     hideTooltip,
     getHashParams() {
+      if (currentSubMode === 'builder' && window.BuildChecker) {
+        return BuildChecker.getHashParams();
+      }
       const p = new URLSearchParams();
       if (currentSubMode === 'jobs') {
         if (currentJob) p.set('job', currentJob);
@@ -793,7 +817,10 @@ window.RuneCenter = (() => {
       const job = params.get('job');
       const cmp = params.get('cmp');
       const q = params.get('q');
-      if (mode === 'reverse') {
+      if (mode === 'builder' && window.BuildChecker) {
+        setSubMode('builder', false);
+        BuildChecker.applyHashParams(params);
+      } else if (mode === 'reverse') {
         if (q) quickSearch.value = q;
         setSubMode('reverse', false);
       } else if (mode === 'guide') {
