@@ -269,12 +269,17 @@ h1 {
   border-color: var(--accent);
   color: #fff;
 }
+.rune-right-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .quick-search-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 250px;
-  max-width: 380px;
+  width: 225px;
 }
 .search-input, .num-input {
   width: 100%;
