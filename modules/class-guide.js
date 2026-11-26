@@ -1,4 +1,4 @@
-// 模組 6：全 21 職業養成指南（S1 Lv.85，直接整併台服現有 16 張附魔卷軸於單職 2×3 六卡內）
+// 模組 6：全 21 職業養成指南（S1 Lv.85，2×3 六卡整併台服 16 卷附魔）＋ S1 核心系統攻略（聖騎士／超越刻印／大師徽章）
 window.ClassGuide = (() => {
   const families = {
     戰士系列: ['戰士', '大劍戰士', '劍術士', '騎士'],
@@ -11,12 +11,13 @@ window.ClassGuide = (() => {
   const allJobs = Object.values(families).flat();
 
   let app = null;
+  let currentSub = 'guides'; // 'guides' | 'systems'
   let currentJob = null;
   let selectedBtn = null;
   const jobButtons = new Map();
 
   // DOM 節點
-  let rulesGrid, jobsNav, panel;
+  let viewGuides, viewSystems, rulesGrid, jobsNav, panel, systemsRoot;
 
   function makeTagRow(labelText, items, tagClass) {
     const { el } = app;
@@ -35,6 +36,112 @@ window.ClassGuide = (() => {
     const row = el('div', 'growth-kv');
     row.append(el('span', 'growth-k', labelText), el('span', 'growth-inline-txt', text));
     return row;
+  }
+
+  function setSubTab(sub, updateHash = true) {
+    if (sub !== 'guides' && sub !== 'systems') sub = 'guides';
+    currentSub = sub;
+    document.querySelectorAll('#tab-growth .mode-tab').forEach(btn => {
+      btn.setAttribute('aria-selected', String(btn.dataset.growth === sub));
+    });
+    viewGuides.hidden = sub !== 'guides';
+    viewSystems.hidden = sub !== 'systems';
+    if (updateHash) app.syncHash();
+  }
+
+  function renderS1Systems() {
+    if (!systemsRoot || typeof S1_SYSTEM_GUIDES === 'undefined') return;
+    const { el } = app;
+    const data = S1_SYSTEM_GUIDES;
+    systemsRoot.replaceChildren();
+
+    // ① 聖騎士變身與 5 格聖物
+    const sec1 = el('section', 'sys-section');
+    const h1 = el('div', 'sys-section-head');
+    h1.append(el('h2', '', data.paladin.title), el('p', 'panel-meta', data.paladin.subtitle));
+    const g1 = el('div', 'two-col-cards');
+    g1.style.marginBottom = '0';
+    for (const c of data.paladin.cards) {
+      const card = el('div', 'guide-card');
+      card.append(el('h3', '', c.heading));
+      const ul = el('ul');
+      for (const item of c.items) ul.append(el('li', '', item));
+      card.append(ul);
+      g1.append(card);
+    }
+    sec1.append(h1, g1);
+
+    // ② 8★ 超越刻印與記憶刻印防呆
+    const sec2 = el('section', 'sys-section');
+    const h2 = el('div', 'sys-section-head');
+    h2.append(el('h2', '', data.transcendence.title), el('p', 'panel-meta', data.transcendence.subtitle));
+
+    const priGrid = el('div', 'priority-grid');
+    for (const p of data.transcendence.priorityOrder) {
+      const pc = el('div', 'priority-card');
+      const pt = el('div', 'priority-top');
+      pt.append(el('span', 'spec-rank', p.rank), el('strong', '', p.slot));
+      pc.append(pt, el('p', 'priority-desc', p.reason));
+      priGrid.append(pc);
+    }
+
+    const tblWrap = el('div', 'rw-table-wrap');
+    const tbl = el('table', 'rw-table');
+    const thead = tbl.createTHead();
+    const hr = thead.insertRow();
+    for (const col of ['超越階段', '適用部位', '所需精華', '所需裝飾', '消耗金幣']) {
+      const th = el('th', '', col);
+      th.scope = 'col';
+      hr.append(th);
+    }
+    const tb = tbl.createTBody();
+    for (const r of data.transcendence.costRows) {
+      const tr = tb.insertRow();
+      tr.append(
+        el('td', '', r.stage),
+        el('td', '', r.target),
+        el('td', 'num-col', r.essence),
+        el('td', '', r.ornament),
+        el('td', 'num-col', r.gold)
+      );
+    }
+    tblWrap.append(tbl);
+
+    const memCard = el('div', 'guide-card');
+    memCard.append(el('h3', '', '記憶刻印換裝防呆與符文之語連動'));
+    const memUl = el('ul');
+    for (const tip of data.transcendence.memoryTips) memUl.append(el('li', '', tip));
+    memCard.append(memUl);
+
+    sec2.append(h2, priGrid, tblWrap, memCard);
+
+    // ③ 職業大師徽章與精靈痕跡／秘藥
+    const sec3 = el('section', 'sys-section');
+    const h3 = el('div', 'sys-section-head');
+    h3.append(el('h2', '', data.mastery.title), el('p', 'panel-meta', data.mastery.subtitle));
+    const g3 = el('div', 'sys-three-grid');
+    for (const c of data.mastery.cards) {
+      const card = el('div', 'guide-card sys-flex-card');
+      card.append(el('h3', '', c.heading));
+      const ul = el('ul');
+      for (const item of c.items) ul.append(el('li', '', item));
+      card.append(ul);
+      if (c.link) {
+        const aWrap = el('div', 'tool-card-actions');
+        aWrap.style.marginTop = 'auto';
+        aWrap.style.paddingTop = '10px';
+        const a = el('a', 'action-link', c.link.label);
+        a.href = c.link.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        aWrap.append(a);
+        card.append(aWrap);
+      }
+      g3.append(card);
+    }
+    sec3.append(h3, g3);
+
+    systemsRoot.append(sec1, sec2, sec3);
   }
 
   function renderPanel(job) {
@@ -120,7 +227,7 @@ window.ClassGuide = (() => {
       el('p', 'growth-tip', data.engravingReset.tip)
     );
 
-    // ④ 裝備附魔（直接呈現台服 S1 現有 16 卷：武器／防具／徽章／飾品＋來源）
+    // ④ 裝備附魔（台服 S1 現有 16 卷）
     const cEnc = el('article', 'growth-card');
     const enc = data.enchant;
     cEnc.append(el('h3', '', '④ 裝備附魔（台服 S1 現有卷軸）'));
@@ -170,6 +277,7 @@ window.ClassGuide = (() => {
   function openJob(job, updateHash = true) {
     if (!allJobs.includes(job)) return;
     app.setPrimaryTab('growth', false);
+    setSubTab('guides', false);
     const btn = jobButtons.get(job);
     if (!btn) return;
     if (selectedBtn) selectedBtn.setAttribute('aria-pressed', 'false');
@@ -199,9 +307,16 @@ window.ClassGuide = (() => {
 
   function init(ctx) {
     app = ctx;
+    viewGuides = document.querySelector('#growth-view-guides');
+    viewSystems = document.querySelector('#growth-view-systems');
     rulesGrid = document.querySelector('#growth-rules-grid');
     jobsNav = document.querySelector('#growth-jobs');
     panel = document.querySelector('#growth-panel');
+    systemsRoot = document.querySelector('#s1-systems-root');
+
+    document.querySelectorAll('#tab-growth .mode-tab').forEach(btn => {
+      btn.onclick = () => setSubTab(btn.dataset.growth);
+    });
 
     for (const r of GROWTH_GENERAL_RULES) {
       const card = app.el('div', 'guide-card');
@@ -228,22 +343,34 @@ window.ClassGuide = (() => {
       group.append(row);
       jobsNav.append(group);
     }
+
+    renderS1Systems();
   }
 
   return {
     init,
     allJobs,
     openJob,
+    setSubTab,
     getHashParams() {
       const p = new URLSearchParams();
       p.set('tab', 'growth');
-      if (currentJob) p.set('job', currentJob);
+      if (currentSub !== 'guides') {
+        p.set('sub', currentSub);
+      } else if (currentJob) {
+        p.set('job', currentJob);
+      }
       return p;
     },
     applyHashParams(params) {
+      const sub = params.get('sub');
       const job = params.get('job');
-      if (job && allJobs.includes(job)) {
+      if (sub === 'systems') {
+        setSubTab('systems', false);
+      } else if (job && allJobs.includes(job)) {
         openJob(job, false);
+      } else {
+        setSubTab('guides', false);
       }
     }
   };
