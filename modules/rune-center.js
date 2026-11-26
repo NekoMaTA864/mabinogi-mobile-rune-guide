@@ -730,8 +730,10 @@ window.RuneCenter = (() => {
         { k: 't2', label: 'T2 備選', cls: 'tier-2' },
         { k: 'noteRef', label: '搭配提及', cls: 'tier-2' }
       ];
+      let hasUsage = false;
       for (const td of tierDefs) {
         if (!usage[td.k].length) continue;
+        hasUsage = true;
         const row = el('div', 'usage-row');
         row.append(el('span', `usage-tier ${td.cls}`, `${td.label} (${usage[td.k].length})`));
         for (const j of usage[td.k]) {
@@ -741,6 +743,9 @@ window.RuneCenter = (() => {
           row.append(jb);
         }
         useBox.append(row);
+      }
+      if (!hasUsage) {
+        useBox.append(el('p', 'rc-note', '圖鑑收錄・目前未列入 21 職 T0–T2 主流推薦'));
       }
       card.append(useBox);
       frag.append(card);
@@ -830,9 +835,15 @@ window.RuneCenter = (() => {
       if (usage.t1.length) summaryParts.push(`T1 × ${usage.t1.length}`);
       if (usage.t2.length) summaryParts.push(`T2 × ${usage.t2.length}`);
       if (!summaryParts.length && usage.noteRef.length) summaryParts.push(`搭配提及 × ${usage.noteRef.length}`);
-      uRow.append(el('span', '', `全職採用：${summaryParts.join('｜') || '—'}`));
+      uRow.append(
+        el(
+          'span',
+          summaryParts.length ? '' : 'note-text',
+          summaryParts.length ? `全職採用：${summaryParts.join('｜')}` : '圖鑑收錄・目前未列入 21 職 T0–T2 主流推薦'
+        )
+      );
 
-      const jumpBtn = el('button', 'tt-jump-btn', '反查採用職業');
+      const jumpBtn = el('button', 'tt-jump-btn', summaryParts.length ? '反查採用職業' : '在圖鑑中查看');
       jumpBtn.type = 'button';
       jumpBtn.onclick = (e) => {
         e.stopPropagation();
