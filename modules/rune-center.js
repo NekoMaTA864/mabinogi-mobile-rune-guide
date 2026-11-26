@@ -376,6 +376,23 @@ window.RuneCenter = (() => {
             : '提示：滑鼠移至（手機點擊）任一 S1 符文可查看中文效果、對應技能與韓文原名；點擊鎖定後可反查採用職業。'
         )
       );
+
+      if (typeof CLASS_GROWTH_GUIDES !== 'undefined' && CLASS_GROWTH_GUIDES[job]) {
+        const g = CLASS_GROWTH_GUIDES[job];
+        const bar = el('div', 'spec-banner');
+        const info = el('div', 'spec-banner-text');
+        info.append(
+          el('strong', '', '飾品與技能特化速查：'),
+          document.createTextNode(`飾品「${g.skillSpec.runes.join(' ＋ ')}」→ ${g.skillSpec.specCombos.join(' ／ ')}`)
+        );
+        const goBtn = el('button', 'job-jump-btn', '看循環用法與 85 級養成 →');
+        goBtn.type = 'button';
+        goBtn.onclick = () => {
+          if (window.ClassGuide) ClassGuide.openJob(job, true);
+        };
+        bar.append(info, goBtn);
+        panel.append(bar);
+      }
     }
 
     if (validCompare && sharedSet) {

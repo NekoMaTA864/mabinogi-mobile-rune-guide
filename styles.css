@@ -1327,6 +1327,47 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   border-color: var(--defect-border);
   color: var(--defect-text);
 }
+.g-tag.is-spec {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.usage-callout {
+  margin-top: auto;
+  padding: 10px 12px;
+  background: var(--surface-sub);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.usage-callout-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.usage-callout-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.58;
+  color: var(--text);
+}
+.spec-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  border-radius: 7px;
+  font-size: 13px;
+}
+.spec-banner-text { color: var(--text); }
 .spec-list {
   list-style: none;
   margin: 0;

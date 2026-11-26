@@ -1,5 +1,5 @@
-// 模組 6：全 21 職業養成指南（寶石雕琢、技能特化、刻印重設、等級卡、進階可選項）
-// 與符文中心採完全一致的 6 大職系均齊選擇器，並支援同職業一鍵雙向互跳。
+// 模組 6：全 21 職業養成指南（S1 Lv.85 最新版本）
+// 涵蓋：寶石雕琢、飾品符文與技能特化搭配（純符文名稱＋對應特化編號＋實戰用法）、刻印重設、S1 1～85 級等級卡、進階可選項。
 window.ClassGuide = (() => {
   const families = {
     戰士系列: ['戰士', '大劍戰士', '劍術士', '騎士'],
@@ -83,18 +83,25 @@ window.ClassGuide = (() => {
       el('p', 'growth-tip', data.gemCarving.tip)
     );
 
-    // ② 技能特化
+    // ② 飾品符文與技能特化（純符文名稱 → 對應特化編號 → 通常使用方式）
     const cSpec = el('article', 'growth-card');
-    cSpec.append(el('h3', '', '② 技能特化（30 等優先與流派核心）'));
-    const ol = el('ol', 'spec-list');
-    data.skillSpec.priority.forEach((sk, idx) => {
-      const li = el('li');
-      li.append(el('span', 'spec-rank', `優先 ${idx + 1}`), el('span', '', sk));
-      ol.append(li);
-    });
-    const runeRow = el('div', 'growth-kv');
-    runeRow.append(el('span', 'growth-k', '核心飾品聯動'), el('span', 'g-tag is-t1', data.skillSpec.runeLink));
-    cSpec.append(ol, runeRow, el('p', 'growth-tip', data.skillSpec.tip));
+    cSpec.append(
+      el('h3', '', '② 技能特化（飾品符文對應與用法）'),
+      makeTagRow('搭配飾品符文', data.skillSpec.runes, 'is-t0')
+    );
+    const comboRow = el('div', 'growth-kv');
+    comboRow.append(el('span', 'growth-k', '對應技能特化'));
+    const comboWrap = el('div', 'tag-row');
+    for (const c of data.skillSpec.specCombos) {
+      comboWrap.append(el('span', 'g-tag is-spec', c));
+    }
+    comboRow.append(comboWrap);
+    const usageBox = el('div', 'usage-callout');
+    usageBox.append(
+      el('span', 'usage-callout-label', '通常怎麼使用（實戰循環）'),
+      el('p', 'usage-callout-text', data.skillSpec.usage)
+    );
+    cSpec.append(comboRow, usageBox);
 
     // ③ 刻印重設
     const cEng = el('article', 'growth-card');
@@ -107,17 +114,15 @@ window.ClassGuide = (() => {
       el('p', 'growth-tip', data.engravingReset.tip)
     );
 
-    // ④ 等級卡
+    // ④ 等級卡（S1 1～85 級配置）
     const cLv = el('article', 'growth-card');
     const statOrderText = data.levelCards.endgameStats.join(' ＞ ');
     const statRow = el('div', 'growth-kv');
-    statRow.append(el('span', 'growth-k', '滿等主屬性優先'), el('strong', 'growth-stat-chain', statOrderText));
-    const earlyRow = el('div', 'growth-kv');
-    earlyRow.append(el('span', 'growth-k', '1～50 級拓荒'), el('span', 'growth-inline-txt', data.levelCards.early));
+    statRow.append(el('span', 'growth-k', '主屬性優先'), el('strong', 'growth-stat-chain', statOrderText));
     cLv.append(
-      el('h3', '', '④ 等級卡（升級獎勵卡配置）'),
+      el('h3', '', '④ 等級卡（S1 1～85 級配置）'),
       statRow,
-      earlyRow,
+      makeTagRow('65～85 特殊卡', data.levelCards.s1Milestones, 'is-t1'),
       el('p', 'growth-tip', data.levelCards.tip)
     );
 
