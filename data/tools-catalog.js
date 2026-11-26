@@ -1,5 +1,49 @@
-// 瑪奇 Mobile 中文社群工具箱目錄（2026-11-25 實地查核巴哈姆特與各站整理）
+// 瑪奇 Mobile 中文社群工具箱目錄（2026-11-26 實地驗證各站子頁 URL）
+// FEATURED_SHORTCUTS: 精選 5 大熱門特色功能一鍵直達（外觀紙娃娃 3＋配裝模擬 2）
 // embeddable: true 代表可於「站內沙盒工作台」嘗試 iframe 載入，一律附原作者網址與新分頁降級按鈕。
+
+const FEATURED_SHORTCUTS = [
+  {
+    group: "外觀與紙娃娃",
+    items: [
+      {
+        title: "MMD 3D 試衣間（即時角色生成）",
+        source: "MMD 瑪奇M Dashboard",
+        url: "https://mmd-tw.com/dress-up",
+        desc: "網頁 3D 捏臉、身形、分部位時裝試穿、HEX 色碼染色與動作預覽。"
+      },
+      {
+        title: "愛爾琳網・時裝紙娃娃",
+        source: "愛爾琳網 (erinn.tw)",
+        url: "https://erinn.tw/dressroom",
+        desc: "全部位裝備與時裝線上試穿、造型配色與穿搭保存。"
+      },
+      {
+        title: "台韓時裝未來視時間軸",
+        source: "星月酒館 (Starmoon)",
+        url: "https://starmoon.game-db.tw/game-data/fashion-timeline/",
+        desc: "韓服與台港澳服時裝、通行證、傳說外觀上架順序對照。"
+      }
+    ]
+  },
+  {
+    group: "配裝模擬與榜單",
+    items: [
+      {
+        title: "10 格符文＋21 格寶石模擬器",
+        source: "mabi.lin3.net",
+        url: "https://mabi.lin3.net/",
+        desc: "透明戰力公式精算、完整配裝試算與一鍵分享連結。"
+      },
+      {
+        title: "S1／S2 全職業符文 Tier 表",
+        source: "模賓報 (mobinogi.info)",
+        url: "https://mobinogi.info/zh/rune",
+        desc: "跨賽季（S0／S1／S2）各職業強度評價與中韓對照速查。"
+      }
+    ]
+  }
+];
 
 const COMMUNITY_TOOLS = [
   // ===== 符文與配裝 =====

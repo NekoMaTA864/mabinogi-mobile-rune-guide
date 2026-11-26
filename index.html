@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-8">
+<link rel="stylesheet" href="styles.css?v=20261126-9">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -61,6 +61,23 @@
     </div>
 
     <div id="timer-grid" class="timer-grid"></div>
+
+    <section class="purple-hole-panel" aria-label="愛麗莎紫洞後續預測與校準">
+      <div class="ph-panel-head">
+        <div>
+          <h2 class="ph-panel-title">愛麗莎・紫洞未來 3 場預估（＋36 小時 15 分）</h2>
+          <p id="ph-anchor-meta" class="ph-anchor-meta"></p>
+        </div>
+        <div class="ph-cal-controls">
+          <label class="sr-only" for="ph-anchor-input">紫洞基準開啟時間（台北時間）</label>
+          <input id="ph-anchor-input" class="ph-datetime-input" type="datetime-local" aria-label="設定愛麗莎紫洞基準開啟時間">
+          <button id="ph-apply-btn" class="tool-btn" type="button">套用基準</button>
+          <button id="ph-now-btn" class="tool-btn is-primary" type="button">剛開洞！設為現在</button>
+          <button id="ph-reset-btn" class="tool-btn" type="button">恢復預設</button>
+        </div>
+      </div>
+      <div id="ph-upcoming" class="ph-upcoming"></div>
+    </section>
 
     <div class="schedule-split">
       <div>
@@ -439,6 +456,16 @@
 
   <!-- ===== 主分頁 5：社群工具箱 ===== -->
   <section id="tab-toolbox" class="surface-box" hidden>
+    <div class="featured-shortcuts-box">
+      <div class="panel-head" style="margin-bottom:10px;">
+        <div>
+          <h2 style="font-size:19px;">熱門特色功能・一鍵直達</h2>
+          <p class="panel-meta">精選外觀試穿、時裝未來視與進階配裝模擬的常用直達入口。</p>
+        </div>
+      </div>
+      <div id="featured-shortcuts" class="featured-shortcuts"></div>
+    </div>
+
     <div id="workbench-box" class="workbench-box">
       <div class="workbench-head">
         <div>
@@ -482,19 +509,19 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-8"></script>
-<script src="data/runes-s0.js?v=20261126-8"></script>
-<script src="data/schedule.js?v=20261126-8"></script>
-<script src="data/tools-catalog.js?v=20261126-8"></script>
-<script src="data/barter.js?v=20261126-8"></script>
-<script src="data/roadmap.js?v=20261126-8"></script>
-<script src="modules/build-checker.js?v=20261126-8"></script>
-<script src="modules/rune-center.js?v=20261126-8"></script>
-<script src="modules/barter-finder.js?v=20261126-8"></script>
-<script src="modules/calculators.js?v=20261126-8"></script>
-<script src="modules/roadmap-view.js?v=20261126-8"></script>
-<script src="modules/timer-board.js?v=20261126-8"></script>
-<script src="modules/toolbox.js?v=20261126-8"></script>
+<script src="runes.js?v=20261126-9"></script>
+<script src="data/runes-s0.js?v=20261126-9"></script>
+<script src="data/schedule.js?v=20261126-9"></script>
+<script src="data/tools-catalog.js?v=20261126-9"></script>
+<script src="data/barter.js?v=20261126-9"></script>
+<script src="data/roadmap.js?v=20261126-9"></script>
+<script src="modules/build-checker.js?v=20261126-9"></script>
+<script src="modules/rune-center.js?v=20261126-9"></script>
+<script src="modules/barter-finder.js?v=20261126-9"></script>
+<script src="modules/calculators.js?v=20261126-9"></script>
+<script src="modules/roadmap-view.js?v=20261126-9"></script>
+<script src="modules/timer-board.js?v=20261126-9"></script>
+<script src="modules/toolbox.js?v=20261126-9"></script>
 <script>
 (() => {
   const tabSections = {

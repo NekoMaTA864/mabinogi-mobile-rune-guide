@@ -6,9 +6,33 @@ window.Toolbox = (() => {
   let workbenchLoaded = false;
 
   let wbTabs, wbTitle, wbLink, wbFrame, wbReload, wbToggle, wbBody;
-  let catFilters, toolCount, toolGrid;
+  let shortcutsBox, catFilters, toolCount, toolGrid;
 
   const categories = ['符文與配裝', '即時與黑洞', '物資與製作', 'MML 音樂', '新手與日常', '桌面工具'];
+
+  function renderFeaturedShortcuts() {
+    if (!shortcutsBox || typeof FEATURED_SHORTCUTS === 'undefined') return;
+    const { el } = app;
+    shortcutsBox.replaceChildren();
+    for (const grp of FEATURED_SHORTCUTS) {
+      const wrap = el('div', 'shortcut-group');
+      wrap.append(el('div', 'shortcut-group-title', grp.group));
+      const grid = el('div', `shortcut-grid cols-${grp.items.length}`);
+      for (const item of grp.items) {
+        const a = el('a', 'shortcut-btn');
+        a.href = item.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+
+        const top = el('div', 'shortcut-top');
+        top.append(el('strong', 'shortcut-title', `${item.title} ↗`), el('span', 'rc-tag is-live', item.source));
+        a.append(top, el('span', 'shortcut-desc', item.desc));
+        grid.append(a);
+      }
+      wrap.append(grid);
+      shortcutsBox.append(wrap);
+    }
+  }
 
   function getEmbeddableTools() {
     return COMMUNITY_TOOLS.filter(t => t.embeddable);
@@ -107,10 +131,12 @@ window.Toolbox = (() => {
     wbReload = document.querySelector('#wb-reload');
     wbToggle = document.querySelector('#wb-toggle');
     wbBody = document.querySelector('#wb-body');
+    shortcutsBox = document.querySelector('#featured-shortcuts');
     catFilters = document.querySelector('#tool-cat-filters');
     toolCount = document.querySelector('#tool-count');
     toolGrid = document.querySelector('#tool-grid');
 
+    renderFeaturedShortcuts();
     renderWorkbenchTabs();
 
     wbToggle.onclick = () => {

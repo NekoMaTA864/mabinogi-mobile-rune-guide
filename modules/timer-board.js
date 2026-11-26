@@ -1,14 +1,23 @@
-// 模組 2：台灣時間（UTC+8）即時排程與倒數儀表板
+// 模組 2：台灣時間（UTC+8）即時排程與紫洞（愛麗沙）倒數儀表板
 window.TimerBoard = (() => {
   const DAY_NAMES = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const SHORT_DAYS = ['日', '一', '二', '三', '四', '五', '六'];
   const UTC8_MS = 8 * 3600 * 1000;
+  const PH_STORAGE_KEY = 'mabi-alissa-purple-hole-anchor';
 
   let app = null;
   let timerId = null;
   let lastRenderedGameDay = null;
+  let lastPhSlotKey = null;
+
+  // 紫洞基準時刻（毫秒 UTC）與是否為自訂校準
+  let phAnchorMs = Date.parse(SCHEDULE_CONFIG.purpleHole.defaultAnchorIso);
+  let phIsCustom = false;
 
   // DOM 節點
-  let clockMain, clockSub, timerGrid, dungeonHero, dungeonBody, bhList;
+  let clockMain, clockSub, timerGrid, phUpcomingEl, phAnchorMetaEl;
+  let phInputEl, phApplyBtn, phNowBtn, phResetBtn;
+  let dungeonHero, dungeonBody, bhList;
 
   function pad(n) {
     return String(Math.floor(n)).padStart(2, '0');
@@ -25,8 +34,8 @@ window.TimerBoard = (() => {
   }
 
   // 以 UTC+8 計算台北時間（不依賴使用者電腦時區）
-  function getTaipeiParts(nowMs) {
-    const d = new Date(nowMs + UTC8_MS);
+  function getTaipeiParts(ms) {
+    const d = new Date(ms + UTC8_MS);
     return {
       year: d.getUTCFullYear(),
       month: d.getUTCMonth() + 1,
@@ -42,6 +51,108 @@ window.TimerBoard = (() => {
     return Date.UTC(year, month - 1, date, hour, min, sec) - UTC8_MS;
   }
 
+  function formatTaipeiShort(ms) {
+    const p = getTaipeiParts(ms);
+    return `${pad(p.month)}/${pad(p.date)}（${SHORT_DAYS[p.day]}）${pad(p.hour)}:${pad(p.min)}`;
+  }
+
+  function formatTaipeiFull(ms) {
+    const p = getTaipeiParts(ms);
+    return `${p.year}/${pad(p.month)}/${pad(p.date)}（${SHORT_DAYS[p.day]}）${pad(p.hour)}:${pad(p.min)}:${pad(p.sec)}`;
+  }
+
+  function toDatetimeLocalValue(ms) {
+    const p = getTaipeiParts(ms);
+    return `${p.year}-${pad(p.month)}-${pad(p.date)}T${pad(p.hour)}:${pad(p.min)}`;
+  }
+
+  function parseTaipeiDatetimeLocal(str) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec((str || '').trim());
+    if (!m) return null;
+    return taipeiToUtcMs(
+      Number(m[1]), Number(m[2]), Number(m[3]),
+      Number(m[4]), Number(m[5]), Number(m[6] || 0)
+    );
+  }
+
+  function loadSavedAnchor() {
+    const defMs = Date.parse(SCHEDULE_CONFIG.purpleHole.defaultAnchorIso);
+    phAnchorMs = defMs;
+    phIsCustom = false;
+    try {
+      const saved = localStorage.getItem(PH_STORAGE_KEY);
+      if (saved) {
+        const parsed = Date.parse(saved);
+        if (!Number.isNaN(parsed)) {
+          phAnchorMs = parsed;
+          phIsCustom = true;
+        }
+      }
+    } catch (_) {}
+  }
+
+  function saveAnchor(ms, isCustom) {
+    phAnchorMs = ms;
+    phIsCustom = isCustom;
+    try {
+      if (isCustom) localStorage.setItem(PH_STORAGE_KEY, new Date(ms).toISOString());
+      else localStorage.removeItem(PH_STORAGE_KEY);
+    } catch (_) {}
+    lastPhSlotKey = null;
+    if (phInputEl) phInputEl.value = toDatetimeLocalValue(phAnchorMs);
+    renderTick();
+  }
+
+  // 計算紫洞（愛麗沙）目前狀態與接下來 3 場開啟時刻
+  function computePurpleHole(nowMs) {
+    const ph = SCHEDULE_CONFIG.purpleHole;
+    const cycleMs = ph.cycleMins * 60 * 1000;
+    const durMs = ph.durationMins * 60 * 1000;
+    const preMs = ph.preAlertMins * 60 * 1000;
+
+    // 找出小於等於 nowMs 的最近一次開啟時間 prevStart
+    const k = Math.floor((nowMs - phAnchorMs) / cycleMs);
+    const prevStart = phAnchorMs + k * cycleMs;
+    const prevEnd = prevStart + durMs;
+    const nextStart = prevStart + cycleMs;
+
+    let card;
+    let upcoming;
+    if (nowMs >= prevStart && nowMs < prevEnd) {
+      card = {
+        label: `紫洞（${ph.serverLabel}）`,
+        status: '開啟中（15分）',
+        active: true,
+        isPurple: true,
+        isPreAlert: false,
+        value: formatDuration(prevEnd - nowMs),
+        detail: `本場於 ${formatTaipeiShort(prevStart)} 開啟，距離入口關閉剩餘時間（可壓秒進場）。`
+      };
+      upcoming = [nextStart, nextStart + cycleMs, nextStart + cycleMs * 2];
+    } else {
+      const remain = nextStart - nowMs;
+      const isPreAlert = remain <= preMs;
+      card = {
+        label: `紫洞（${ph.serverLabel}）`,
+        status: isPreAlert ? '1 小時內預告' : `下場 ${formatTaipeiShort(nextStart)}`,
+        active: false,
+        isPurple: true,
+        isPreAlert,
+        value: formatDuration(remain),
+        detail: isPreAlert
+          ? `預計 ${formatTaipeiShort(nextStart)} 開啟（遊戲內狩獵場已廣播預告，每次存在 15 分鐘）。`
+          : `週期 36 小時 15 分（存在 15 分鐘，不扣藍／紅洞次數）；停機維護後可於下方校準。`
+      };
+      upcoming = [nextStart, nextStart + cycleMs, nextStart + cycleMs * 2];
+    }
+
+    return {
+      card,
+      upcoming,
+      slotKey: `${phAnchorMs}_${upcoming[0]}`
+    };
+  }
+
   function computeEvents(nowMs) {
     const cfg = SCHEDULE_CONFIG;
     const t = getTaipeiParts(nowMs);
@@ -51,16 +162,10 @@ window.TimerBoard = (() => {
     const gameDayIndex = gameD.getUTCDay();
     const gameDateStr = `${gameD.getUTCFullYear()}/${pad(gameD.getUTCMonth() + 1)}/${pad(gameD.getUTCDate())}（${DAY_NAMES[gameDayIndex]}）`;
 
-    // 1. 距離每日重置（台北 06:00）
-    let nextDaily = taipeiToUtcMs(t.year, t.month, t.date, cfg.resetHour);
-    if (nextDaily <= nowMs) nextDaily += 24 * 3600 * 1000;
+    // 1. 紫洞（愛麗沙）倒數推算
+    const phState = computePurpleHole(nowMs);
 
-    // 2. 距離每週重置（台北週一 06:00）
-    let daysUntilMon = (cfg.weeklyResetDay - t.day + 7) % 7;
-    let nextWeekly = taipeiToUtcMs(t.year, t.month, t.date + daysUntilMon, cfg.resetHour);
-    if (nextWeekly <= nowMs) nextWeekly += 7 * 24 * 3600 * 1000;
-
-    // 3. 野外首領（每日 12:00 / 18:00 / 20:00 / 22:00，開打前 10 分可預入、持續 30 分）
+    // 2. 野外首領（每日 12:00 / 18:00 / 20:00 / 22:00，開打前 10 分可預入、持續 30 分）
     let bossCard = null;
     for (const offsetDay of [0, 1]) {
       for (const hr of cfg.fieldBossHours) {
@@ -93,7 +198,7 @@ window.TimerBoard = (() => {
             status: `下場 ${pad(hr)}:00`,
             active: false,
             value: formatDuration(startMs - nowMs),
-            detail: `每日 12:00 / 18:00 / 20:00 / 22:00 出現（前 10 分鐘可入場，持續 30 分鐘）。`
+            detail: '每日 12:00 / 18:00 / 20:00 / 22:00 出現（前 10 分鐘可入場，持續 30 分鐘）。'
           };
           break;
         }
@@ -101,7 +206,7 @@ window.TimerBoard = (() => {
       if (bossCard) break;
     }
 
-    // 4. 不詳的召喚結界（每日 06:00 起每逢整點出現，地面黑氣約 3 分鐘後召喚）
+    // 3. 不詳的召喚結界（每日 06:00 起每逢整點出現，地面黑氣約 3 分鐘後召喚）
     const curHourStart = taipeiToUtcMs(t.year, t.month, t.date, t.hour, 0, 0);
     const prepEnd = curHourStart + cfg.summonBarrierPrepMins * 60 * 1000;
     const nextHourStart = curHourStart + 3600 * 1000;
@@ -129,25 +234,28 @@ window.TimerBoard = (() => {
       taipeiClock: `${t.year}/${pad(t.month)}/${pad(t.date)}（${DAY_NAMES[t.day]}） ${pad(t.hour)}:${pad(t.min)}:${pad(t.sec)}`,
       gameDateStr,
       gameDayIndex,
-      cards: [
-        {
-          label: '每日重置（06:00）',
-          status: '台灣時間',
-          active: false,
-          value: formatDuration(nextDaily - nowMs),
-          detail: '週幾地下城、每日限購與日常次數於每日上午 06:00 重置。'
-        },
-        {
-          label: '每週重置（週一 06:00）',
-          status: '台灣時間',
-          active: false,
-          value: formatDuration(nextWeekly - nowMs),
-          detail: '週任務、深淵／團本每週戰利品與每週以物易物於週一 06:00 重置。'
-        },
-        bossCard,
-        barrierCard
-      ]
+      phState,
+      cards: [phState.card, bossCard, barrierCard]
     };
+  }
+
+  function renderPurpleHolePanel(phState) {
+    const { el } = app;
+    const ph = SCHEDULE_CONFIG.purpleHole;
+
+    phAnchorMetaEl.textContent = phIsCustom
+      ? `目前基準（自訂校準・${ph.serverLabel}）：${formatTaipeiFull(phAnchorMs)}`
+      : `目前基準（內建預設・${ph.serverLabel}）：${formatTaipeiFull(phAnchorMs)} · ${ph.defaultAnchorNote}`;
+
+    phUpcomingEl.replaceChildren();
+    phState.upcoming.forEach((ts, idx) => {
+      const item = el('div', 'ph-slot');
+      item.append(
+        el('span', 'ph-slot-idx', idx === 0 ? '下一場' : `第 ${idx + 1} 場`),
+        el('strong', 'ph-slot-time', formatTaipeiShort(ts))
+      );
+      phUpcomingEl.append(item);
+    });
   }
 
   function renderWeekdayDungeons(gameDayIndex) {
@@ -181,11 +289,21 @@ window.TimerBoard = (() => {
 
     timerGrid.replaceChildren();
     for (const c of state.cards) {
-      const card = el('article', `timer-card${c.active ? ' is-active-event' : ''}`);
+      let cls = 'timer-card';
+      if (c.isPurple) cls += ' is-purple-hole';
+      if (c.active) cls += ' is-active-event';
+      else if (c.isPreAlert) cls += ' is-pre-alert';
+
+      const card = el('article', cls);
       const top = el('div', 'timer-card-top');
       top.append(el('span', 'timer-label', c.label), el('span', 'timer-status', c.status));
       card.append(top, el('div', 'timer-value', c.value), el('p', 'timer-detail', c.detail));
       timerGrid.append(card);
+    }
+
+    if (lastPhSlotKey !== state.phState.slotKey) {
+      lastPhSlotKey = state.phState.slotKey;
+      renderPurpleHolePanel(state.phState);
     }
 
     if (lastRenderedGameDay !== state.gameDayIndex) {
@@ -199,9 +317,40 @@ window.TimerBoard = (() => {
     clockMain = document.querySelector('#clock-main');
     clockSub = document.querySelector('#clock-sub');
     timerGrid = document.querySelector('#timer-grid');
+    phUpcomingEl = document.querySelector('#ph-upcoming');
+    phAnchorMetaEl = document.querySelector('#ph-anchor-meta');
+    phInputEl = document.querySelector('#ph-anchor-input');
+    phApplyBtn = document.querySelector('#ph-apply-btn');
+    phNowBtn = document.querySelector('#ph-now-btn');
+    phResetBtn = document.querySelector('#ph-reset-btn');
     dungeonHero = document.querySelector('#dungeon-hero');
     dungeonBody = document.querySelector('#dungeon-body');
     bhList = document.querySelector('#blackhole-links');
+
+    loadSavedAnchor();
+    if (phInputEl) phInputEl.value = toDatetimeLocalValue(phAnchorMs);
+
+    phApplyBtn.onclick = () => {
+      const parsed = parseTaipeiDatetimeLocal(phInputEl.value);
+      if (parsed === null) {
+        app.showToast('請輸入有效的台北時間日期與時刻');
+        return;
+      }
+      saveAnchor(parsed, true);
+      app.showToast(`已更新愛麗莎紫洞基準：${formatTaipeiShort(parsed)}`);
+    };
+
+    phNowBtn.onclick = () => {
+      const now = Date.now();
+      saveAnchor(now, true);
+      app.showToast(`已將愛麗莎紫洞基準設為現在（${formatTaipeiShort(now)}）`);
+    };
+
+    phResetBtn.onclick = () => {
+      const defMs = Date.parse(SCHEDULE_CONFIG.purpleHole.defaultAnchorIso);
+      saveAnchor(defMs, false);
+      app.showToast('已恢復內建愛麗莎紫洞基準時間');
+    };
 
     // 建立動態黑洞回報站快連卡片
     for (const site of SCHEDULE_CONFIG.blackHoleTrackers) {

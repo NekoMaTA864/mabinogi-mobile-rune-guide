@@ -32,6 +32,10 @@
   --live-bg: #e7f6ee;
   --live-border: #2c9661;
   --live-text: #145c38;
+  --purple: #6b38b8;
+  --purple-soft: #f5f1fc;
+  --purple-border: #b697e8;
+  --purple-text: #4a2087;
   --focus: #c58622;
   --t0-bg: #fdf5e4;
   --t0-text: #7c4f08;
@@ -68,6 +72,10 @@
   --gold-soft: #2e2514;
   --gold-border: #9a742b;
   --gold-text: #f6d893;
+  --purple: #b18cf5;
+  --purple-soft: #241b38;
+  --purple-border: #7854bd;
+  --purple-text: #dfd0ff;
   --chip-bg: #1b2b42;
   --chip-border: #334f78;
   --chip-underline: #6fa3e8;
@@ -1030,10 +1038,28 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   flex-direction: column;
   gap: 6px;
 }
+.timer-card.is-purple-hole {
+  border-color: var(--purple-border);
+  background: var(--purple-soft);
+}
+.timer-card.is-purple-hole .timer-label { color: var(--purple-text); }
+.timer-card.is-purple-hole .timer-status {
+  background: var(--purple);
+  color: #fff;
+}
+.timer-card.is-pre-alert {
+  background: var(--gold-soft);
+  border-color: var(--gold-border);
+}
+.timer-card.is-pre-alert .timer-status {
+  background: var(--gold);
+  color: #fff;
+}
 .timer-card.is-active-event {
   background: var(--live-bg);
   border-color: var(--live-border);
 }
+.timer-card.is-active-event .timer-label { color: var(--live-text); }
 .timer-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .timer-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .timer-status {
@@ -1043,6 +1069,7 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   border-radius: 4px;
   background: var(--surface-head);
   color: var(--text);
+  white-space: nowrap;
 }
 .timer-card.is-active-event .timer-status { background: var(--live-border); color: #fff; }
 .timer-value {
@@ -1052,6 +1079,150 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   letter-spacing: .02em;
 }
 .timer-detail { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* 紫洞預測與校準面板（Phase 4A） */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.purple-hole-panel {
+  background: var(--surface-sub);
+  border: 1px solid var(--purple-border);
+  border-left: 4px solid var(--purple);
+  border-radius: 9px;
+  padding: 13px 15px;
+  margin-bottom: 18px;
+}
+.ph-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+}
+.ph-panel-title {
+  margin: 0;
+  font-size: 15.5px;
+  color: var(--purple-text);
+}
+.ph-anchor-meta {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.ph-cal-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.ph-datetime-input {
+  font: 13px/1.3 var(--font-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+.ph-upcoming {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.ph-slot {
+  background: var(--card-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 7px;
+  padding: 8px 11px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ph-slot-idx {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--purple-text);
+}
+.ph-slot-time {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* 社群工具箱：5 大熱門特色直達區（Phase 4A） */
+.featured-shortcuts-box {
+  background: var(--surface-sub);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.featured-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.shortcut-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.shortcut-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+.shortcut-grid {
+  display: grid;
+  gap: 10px;
+}
+.shortcut-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.shortcut-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.shortcut-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px 13px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color .14s ease, background-color .14s ease;
+}
+.shortcut-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.shortcut-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.shortcut-title {
+  font-size: 14.5px;
+  color: var(--link);
+}
+.shortcut-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
 .schedule-split { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
 .dungeon-hero {
   background: var(--gold-soft);
@@ -1233,6 +1404,7 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
 
 @media (max-width: 860px) {
   .schedule-split, .calc-grid, .two-col-cards { grid-template-columns: 1fr; }
+  .ph-upcoming, .shortcut-grid.cols-3, .shortcut-grid.cols-2 { grid-template-columns: 1fr; }
   nav.jobs-nav { grid-template-columns: 1fr; }
 }
 @media (max-width: 780px) {
