@@ -1,5 +1,5 @@
-// 模組 6：全 21 職業養成指南（S1 Lv.85 最新版本）
-// 涵蓋：寶石雕琢、飾品符文與技能特化搭配（純符文名稱＋對應特化編號＋實戰用法）、刻印重設、S1 1～85 級等級卡、進階可選項。
+// 模組 6：全 21 職業養成指南（S1 Lv.85 最新版本）與 S1 核心系統攻略（Phase 6A：附魔卷軸與增幅避坑總表）
+// 6 大單職模組：寶石雕琢、技能特化、刻印重設、裝備附魔（S1 卷軸）、等級卡（1~85）、進階養成可選項（2×3 對稱卡片）。
 window.ClassGuide = (() => {
   const families = {
     戰士系列: ['戰士', '大劍戰士', '劍術士', '騎士'],
@@ -12,12 +12,14 @@ window.ClassGuide = (() => {
   const allJobs = Object.values(families).flat();
 
   let app = null;
+  let currentSub = 'guides'; // 'guides' | 'systems'
   let currentJob = null;
   let selectedBtn = null;
   const jobButtons = new Map();
 
   // DOM 節點
-  let rulesGrid, jobsNav, panel;
+  let viewGuides, viewSystems, rulesGrid, jobsNav, panel;
+  let enchantBody, enchantRangesList, enchantPitfallsList;
 
   function makeTagRow(labelText, items, tagClass) {
     const { el } = app;
@@ -29,6 +31,49 @@ window.ClassGuide = (() => {
     }
     row.append(tags);
     return row;
+  }
+
+  function setSubTab(sub, updateHash = true) {
+    if (sub !== 'guides' && sub !== 'systems') sub = 'guides';
+    currentSub = sub;
+    document.querySelectorAll('#tab-growth .mode-tab').forEach(btn => {
+      btn.setAttribute('aria-selected', String(btn.dataset.growth === sub));
+    });
+    viewGuides.hidden = sub !== 'guides';
+    viewSystems.hidden = sub !== 'systems';
+    if (updateHash) app.syncHash();
+  }
+
+  function renderEnchantSystemView() {
+    if (typeof S1_ENCHANT_CATALOG === 'undefined') return;
+    const { el } = app;
+
+    enchantBody.replaceChildren();
+    for (const sc of S1_ENCHANT_CATALOG.scrolls) {
+      const tr = enchantBody.insertRow();
+      const nameTd = el('td');
+      nameTd.append(
+        el('strong', '', sc.name),
+        el('div', 'cell-sub', `${sc.kr} · ${sc.grade}`)
+      );
+      tr.append(
+        el('td', '', sc.slot),
+        nameTd,
+        el('td', '', sc.effect),
+        el('td', '', sc.source),
+        el('td', '', sc.fit)
+      );
+    }
+
+    enchantRangesList.replaceChildren();
+    for (const line of S1_ENCHANT_CATALOG.randomRanges) {
+      enchantRangesList.append(el('li', '', line));
+    }
+
+    enchantPitfallsList.replaceChildren();
+    for (const line of S1_ENCHANT_CATALOG.pitfalls) {
+      enchantPitfallsList.append(el('li', '', line));
+    }
   }
 
   function renderPanel(job) {
@@ -70,7 +115,7 @@ window.ClassGuide = (() => {
     head.append(titleWrap, tools);
     panel.append(head);
 
-    // 5 大養成模組格線（4 張 2×2 核心卡 ＋ 1 張滿版進階可選項）
+    // 6 大養成模組格線（2×3 對稱卡片）
     const grid = el('div', 'growth-grid');
 
     // ① 寶石雕琢
@@ -83,7 +128,7 @@ window.ClassGuide = (() => {
       el('p', 'growth-tip', data.gemCarving.tip)
     );
 
-    // ② 飾品符文與技能特化（純符文名稱 → 對應特化編號 → 通常使用方式）
+    // ② 飾品符文與技能特化
     const cSpec = el('article', 'growth-card');
     cSpec.append(
       el('h3', '', '② 技能特化（飾品符文對應與用法）'),
@@ -114,22 +159,49 @@ window.ClassGuide = (() => {
       el('p', 'growth-tip', data.engravingReset.tip)
     );
 
-    // ④ 等級卡（S1 1～85 級配置）
+    // ④ 裝備附魔（S1 魔力賦予卷軸與詞條）
+    const cEnc = el('article', 'growth-card');
+    const enc = data.enchant;
+    const encHead = el('div', 'growth-card-head');
+    encHead.append(el('h3', '', '④ 裝備附魔（S1 卷軸與詞條）'));
+    const encLink = el('button', 'job-jump-btn', '看卷軸全表 →');
+    encLink.type = 'button';
+    encLink.onclick = () => setSubTab('systems', true);
+    encHead.append(encLink);
+    cEnc.append(encHead);
+    if (enc) {
+      cEnc.append(makeTagRow('S1 武器充能卷', enc.weaponS1, 'is-t0'));
+      const altRow = el('div', 'growth-kv');
+      altRow.append(el('span', 'growth-k', '武器過渡選擇'), el('span', 'growth-inline-txt', enc.weaponAlt));
+      const armRow = el('div', 'growth-kv');
+      armRow.append(el('span', 'growth-k', '防具附魔'), el('span', 'growth-inline-txt', enc.armor));
+      const accRow = el('div', 'growth-kv');
+      accRow.append(el('span', 'growth-k', '飾品附魔'), el('span', 'growth-inline-txt', enc.accessory));
+      cEnc.append(
+        altRow,
+        armRow,
+        accRow,
+        makeTagRow('隨機詞條優先', enc.randomStats, 'is-t1'),
+        el('p', 'growth-tip', enc.tip)
+      );
+    }
+
+    // ⑤ 等級卡（S1 1～85 級配置）
     const cLv = el('article', 'growth-card');
     const statOrderText = data.levelCards.endgameStats.join(' ＞ ');
     const statRow = el('div', 'growth-kv');
     statRow.append(el('span', 'growth-k', '主屬性優先'), el('strong', 'growth-stat-chain', statOrderText));
     cLv.append(
-      el('h3', '', '④ 等級卡（S1 1～85 級配置）'),
+      el('h3', '', '⑤ 等級卡（S1 1～85 級配置）'),
       statRow,
       makeTagRow('65～85 特殊卡', data.levelCards.s1Milestones, 'is-t1'),
       el('p', 'growth-tip', data.levelCards.tip)
     );
 
-    // ⑤ 進階養成可選項（滿版 3 欄）
-    const cExtra = el('article', 'growth-card is-wide');
-    cExtra.append(el('h3', '', '⑤ 進階養成可選項（副屬性／強化順序／寵物與稱號）'));
-    const cols = el('div', 'extras-cols');
+    // ⑥ 進階養成可選項（2×3 第 6 格平衡呈現）
+    const cExtra = el('article', 'growth-card');
+    cExtra.append(el('h3', '', '⑥ 進階養成可選項（副屬性／強化／寵物）'));
+    const stack = el('div', 'extras-stack');
     const extraItems = [
       { label: '戰鬥副屬性收益排序', val: data.extras.subStatOrder },
       { label: '裝備強化先後順序', val: data.extras.enhanceOrder },
@@ -138,17 +210,18 @@ window.ClassGuide = (() => {
     for (const ex of extraItems) {
       const box = el('div', 'extra-subcard');
       box.append(el('span', 'extra-subcard-label', ex.label), el('p', 'extra-subcard-val', ex.val));
-      cols.append(box);
+      stack.append(box);
     }
-    cExtra.append(cols);
+    cExtra.append(stack);
 
-    grid.append(cGem, cSpec, cEng, cLv, cExtra);
+    grid.append(cGem, cSpec, cEng, cEnc, cLv, cExtra);
     panel.append(grid);
   }
 
   function openJob(job, updateHash = true) {
     if (!allJobs.includes(job)) return;
     app.setPrimaryTab('growth', false);
+    setSubTab('guides', false);
     const btn = jobButtons.get(job);
     if (!btn) return;
     if (selectedBtn) selectedBtn.setAttribute('aria-pressed', 'false');
@@ -178,9 +251,18 @@ window.ClassGuide = (() => {
 
   function init(ctx) {
     app = ctx;
+    viewGuides = document.querySelector('#growth-view-guides');
+    viewSystems = document.querySelector('#growth-view-systems');
     rulesGrid = document.querySelector('#growth-rules-grid');
     jobsNav = document.querySelector('#growth-jobs');
     panel = document.querySelector('#growth-panel');
+    enchantBody = document.querySelector('#enchant-table-body');
+    enchantRangesList = document.querySelector('#enchant-ranges-list');
+    enchantPitfallsList = document.querySelector('#enchant-pitfalls-list');
+
+    document.querySelectorAll('#tab-growth .mode-tab').forEach(btn => {
+      btn.onclick = () => setSubTab(btn.dataset.growth);
+    });
 
     // 繪製全職業通用養成法則速查卡
     for (const r of GROWTH_GENERAL_RULES) {
@@ -192,7 +274,7 @@ window.ClassGuide = (() => {
       rulesGrid.append(card);
     }
 
-    // 繪製與符文中心一致的 6 大職系均齊選擇器
+    // 繪製 6 大職系均齊選擇器
     for (const [family, names] of Object.entries(families)) {
       const group = app.el('section', 'family');
       group.append(app.el('h2', '', family));
@@ -209,22 +291,34 @@ window.ClassGuide = (() => {
       group.append(row);
       jobsNav.append(group);
     }
+
+    renderEnchantSystemView();
   }
 
   return {
     init,
     allJobs,
     openJob,
+    setSubTab,
     getHashParams() {
       const p = new URLSearchParams();
       p.set('tab', 'growth');
-      if (currentJob) p.set('job', currentJob);
+      if (currentSub !== 'guides') {
+        p.set('sub', currentSub);
+      } else if (currentJob) {
+        p.set('job', currentJob);
+      }
       return p;
     },
     applyHashParams(params) {
+      const sub = params.get('sub');
       const job = params.get('job');
-      if (job && allJobs.includes(job)) {
+      if (sub === 'systems') {
+        setSubTab('systems', false);
+      } else if (job && allJobs.includes(job)) {
         openJob(job, false);
+      } else {
+        setSubTab('guides', false);
       }
     }
   };

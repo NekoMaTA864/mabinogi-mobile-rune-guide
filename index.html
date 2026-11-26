@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-12">
+<link rel="stylesheet" href="styles.css?v=20261126-13">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -231,18 +231,62 @@
     </section>
   </section>
 
-  <!-- ===== 主分頁 3：職業養成（寶石雕琢、技能特化、刻印重設、等級卡與進階可選項） ===== -->
+  <!-- ===== 主分頁 3：職業養成（各職業 6 大模組 ＋ S1 核心系統攻略） ===== -->
   <section id="tab-growth" hidden>
-    <details class="rules-collapse">
-      <summary class="rules-summary">
-        <span>全職業通用養成法則速查（寶石 E 乘區／飾品技能特化／刻印不重複／S1 1～85 級等級卡）</span>
-        <span class="rules-toggle-hint">點擊展開／收合</span>
-      </summary>
-      <div id="growth-rules-grid" class="guide-grid" style="margin:12px 0 0;"></div>
-    </details>
+    <div class="top-bar">
+      <div class="mode-tabs" role="tablist" aria-label="職業養成子功能">
+        <button class="mode-tab" role="tab" data-growth="guides" aria-selected="true" type="button">各職業養成指南（21 職）</button>
+        <button class="mode-tab" role="tab" data-growth="systems" aria-selected="false" type="button">S1 核心系統攻略（附魔全表）</button>
+      </div>
+    </div>
 
-    <nav id="growth-jobs" class="jobs-nav" aria-label="依職系選擇職業檢視養成指南"></nav>
-    <section id="growth-panel" class="surface-box" aria-live="polite" hidden></section>
+    <div id="growth-view-guides">
+      <details class="rules-collapse">
+        <summary class="rules-summary">
+          <span>全職業通用養成法則速查（寶石 E 乘區／飾品特化／刻印不重複／S1 附魔避坑／1～85 級等級卡）</span>
+          <span class="rules-toggle-hint">點擊展開／收合</span>
+        </summary>
+        <div id="growth-rules-grid" class="guide-grid" style="margin:12px 0 0;"></div>
+      </details>
+
+      <nav id="growth-jobs" class="jobs-nav" aria-label="依職系選擇職業檢視養成指南"></nav>
+      <section id="growth-panel" class="surface-box" aria-live="polite" hidden></section>
+    </div>
+
+    <section id="growth-view-systems" class="surface-box" hidden>
+      <div class="panel-head">
+        <div>
+          <h2>S1 裝備附魔（魔力賦予）卷軸總表與增幅避坑</h2>
+          <p class="panel-meta">塔巴爾塔斯 5 大武器充能卷軸直接連動「蒼白閃光／搖曳之火」過載電力，務必依職業最常觸發的機制挑選；卷軸譯名待台服圖鑑核對時請以效果辨識。</p>
+        </div>
+      </div>
+
+      <div class="rw-table-wrap" style="margin-bottom:16px;">
+        <table class="rw-table">
+          <thead>
+            <tr>
+              <th scope="col">部位</th>
+              <th scope="col">卷軸名稱</th>
+              <th scope="col">基本效果與觸發條件</th>
+              <th scope="col">主要取得來源</th>
+              <th scope="col">適合職業</th>
+            </tr>
+          </thead>
+          <tbody id="enchant-table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="two-col-cards" style="margin-bottom:0;">
+        <div class="guide-card">
+          <h3>附魔隨機副詞條數值範圍（0～2 條）</h3>
+          <ul id="enchant-ranges-list"></ul>
+        </div>
+        <div class="guide-card">
+          <h3>附魔增幅與覆蓋避坑鐵則</h3>
+          <ul id="enchant-pitfalls-list"></ul>
+        </div>
+      </div>
+    </section>
   </section>
 
   <!-- ===== 主分頁 4：物資與計算（以物易物快查 ＋ 寶石合成計算 ＋ 交易所德卡試算） ===== -->
@@ -535,21 +579,21 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-12"></script>
-<script src="data/runes-s0.js?v=20261126-12"></script>
-<script src="data/class-guides.js?v=20261126-12"></script>
-<script src="data/schedule.js?v=20261126-12"></script>
-<script src="data/tools-catalog.js?v=20261126-12"></script>
-<script src="data/barter.js?v=20261126-12"></script>
-<script src="data/roadmap.js?v=20261126-12"></script>
-<script src="modules/build-checker.js?v=20261126-12"></script>
-<script src="modules/rune-center.js?v=20261126-12"></script>
-<script src="modules/class-guide.js?v=20261126-12"></script>
-<script src="modules/barter-finder.js?v=20261126-12"></script>
-<script src="modules/calculators.js?v=20261126-12"></script>
-<script src="modules/roadmap-view.js?v=20261126-12"></script>
-<script src="modules/timer-board.js?v=20261126-12"></script>
-<script src="modules/toolbox.js?v=20261126-12"></script>
+<script src="runes.js?v=20261126-13"></script>
+<script src="data/runes-s0.js?v=20261126-13"></script>
+<script src="data/class-guides.js?v=20261126-13"></script>
+<script src="data/schedule.js?v=20261126-13"></script>
+<script src="data/tools-catalog.js?v=20261126-13"></script>
+<script src="data/barter.js?v=20261126-13"></script>
+<script src="data/roadmap.js?v=20261126-13"></script>
+<script src="modules/build-checker.js?v=20261126-13"></script>
+<script src="modules/rune-center.js?v=20261126-13"></script>
+<script src="modules/class-guide.js?v=20261126-13"></script>
+<script src="modules/barter-finder.js?v=20261126-13"></script>
+<script src="modules/calculators.js?v=20261126-13"></script>
+<script src="modules/roadmap-view.js?v=20261126-13"></script>
+<script src="modules/timer-board.js?v=20261126-13"></script>
+<script src="modules/toolbox.js?v=20261126-13"></script>
 <script>
 (() => {
   const tabSections = {

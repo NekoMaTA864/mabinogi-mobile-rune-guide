@@ -1282,6 +1282,23 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   padding-bottom: 7px;
   border-bottom: 1px solid var(--border-soft);
 }
+.growth-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.growth-card-head h3 {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.extras-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .growth-kv {
   display: grid;
   grid-template-columns: 112px minmax(0, 1fr);
@@ -1426,6 +1443,10 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
 .stage-badge.is-up { color: var(--live-text); }
 .stage-badge.is-new { color: var(--purple-text); }
 .stage-badge.is-down { color: var(--muted); }
+.rune-chip:hover .stage-badge,
+.rune-chip.is-active .stage-badge {
+  color: #f6d893;
+}
 .tt-stage-diff {
   margin: 7px 0 0;
   padding: 6px 9px;
