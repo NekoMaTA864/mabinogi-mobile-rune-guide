@@ -3,7 +3,7 @@
 window.BuildChecker = (() => {
   const AWAKEN_EMBLEMS = new Set([
     '아득한 빛', '갈라진 땅', '산맥 군주', '부서진 하늘',
-    '대마법사', '흩날리는 검', '무자비한 포식자'
+    '대마법사', '흩날리는 검', '무자비한 포식자', '녹아내리는 대지'
   ]);
   const AWAKEN_ARMORS = new Set(['압도적인 힘', '섬세한 손놀림']);
   const RAID_UNIQUE_ARMORS = new Set(['창백한 섬광', '일렁이는 불꽃']);
