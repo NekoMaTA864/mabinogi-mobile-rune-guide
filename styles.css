@@ -1368,6 +1368,74 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   font-size: 13px;
 }
 .spec-banner-text { color: var(--text); }
+
+/* S1 開季／季末兩段切換列與極簡升降微標（Phase 5A） */
+.stage-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin: 0 0 11px;
+  padding: 8px 11px;
+  background: var(--surface-sub);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+}
+.stage-switch {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
+}
+.stage-btn {
+  font: 13px/1.25 var(--font-body);
+  font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 11px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color .14s ease, color .14s ease;
+}
+.stage-btn:hover { color: var(--text); }
+.stage-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+.stage-hint {
+  font-size: 12.5px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.stage-badge {
+  display: inline-block;
+  margin-left: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: 1px;
+}
+.stage-badge.is-up { color: var(--live-text); }
+.stage-badge.is-new { color: var(--purple-text); }
+.stage-badge.is-down { color: var(--muted); }
+.tt-stage-diff {
+  margin: 7px 0 0;
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: rgba(228, 181, 88, .16);
+  border-left: 3px solid #e4b558;
+  color: #f8e4b0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
 .spec-list {
   list-style: none;
   margin: 0;

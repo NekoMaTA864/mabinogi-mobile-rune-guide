@@ -44,8 +44,9 @@ window.RuneCenter = (() => {
   let app = null;
   let safeAliases = {};
   let safeRunewords = [];
+  let safeStageDiffs = {};
 
-  // 雙賽季索引（s1 / s0）
+  // 雙賽季索引（s1 / s1Early / s0）
   const seasonData = {};
   const jobButtons = new Map();
 
@@ -55,6 +56,7 @@ window.RuneCenter = (() => {
 
   // 狀態
   let currentSeason = 's1';
+  let currentS1Stage = 'early'; // 'early'（開季／過渡，預設） | 'late'（季末／終局）
   let currentSubMode = 'jobs';
   let selectedBtn = null;
   let currentJob = null;
@@ -112,10 +114,21 @@ window.RuneCenter = (() => {
     return seasonData[currentSeason] || seasonData.s1;
   }
 
+  function getActiveViewIndex() {
+    if (currentSeason === 's1' && currentS1Stage === 'early' && seasonData.s1Early) {
+      return seasonData.s1Early;
+    }
+    return getActiveSeason();
+  }
+
   function buildIndexes() {
     safeAliases = (typeof runeAliases !== 'undefined' && runeAliases) ? runeAliases : {};
     safeRunewords = (typeof s1Runewords !== 'undefined' && s1Runewords) ? s1Runewords : [];
+    safeStageDiffs = (typeof s1StageDiffs !== 'undefined' && s1StageDiffs) ? s1StageDiffs : {};
     seasonData.s1 = buildSeasonIndex(runeInfo, runes);
+    if (typeof runesEarly !== 'undefined') {
+      seasonData.s1Early = buildSeasonIndex(runeInfo, runesEarly);
+    }
     if (typeof s0RuneInfo !== 'undefined' && typeof s0Runes !== 'undefined') {
       seasonData.s0 = buildSeasonIndex(s0RuneInfo, s0Runes);
     }
@@ -150,13 +163,27 @@ window.RuneCenter = (() => {
     if (updateHash) app.syncHash();
   }
 
-  function renderCellContent(container, rawText, sharedSet) {
+  function setS1Stage(stage, updateHash = true) {
+    if (stage !== 'early' && stage !== 'late') return;
+    currentS1Stage = stage;
+    hideTooltip(true);
+    if (currentSeason === 's1' && currentSubMode === 'jobs' && currentJob) {
+      renderPanel(currentJob, currentFamily);
+    }
+    if (updateHash) app.syncHash();
+  }
+
+  function renderCellContent(container, rawText, sharedSet, job) {
     const { el } = app;
     const ds = getActiveSeason();
     if (!rawText) {
       container.append(el('span', 'empty-cell', '—'));
       return;
     }
+    const showDiffs = currentSeason === 's1' && currentS1Stage === 'late';
+    const jobDiffs = (showDiffs && job && safeStageDiffs[job]) ? safeStageDiffs[job] : null;
+    const badgeSymbols = { up: '▲', new: '★', down: '▼' };
+
     const parts = rawText.split(ds.pattern);
     for (const part of parts) {
       if (!part) continue;
@@ -170,6 +197,14 @@ window.RuneCenter = (() => {
         if (sharedSet && sharedSet.has(part)) chip.classList.add('is-shared');
         if (highlightRuneKey === part) chip.classList.add('is-highlighted');
         chip.append(document.createTextNode(info.zh));
+        if (jobDiffs && jobDiffs[part]) {
+          const d = jobDiffs[part];
+          chip.dataset.diffNote = d.note;
+          chip.dataset.diffBadge = d.badge;
+          const bSpan = el('span', `stage-badge is-${d.badge}`, badgeSymbols[d.badge] || '');
+          bSpan.setAttribute('aria-label', d.badge === 'up' ? '季末升格' : d.badge === 'new' ? '季末新入榜' : '退為過渡');
+          chip.append(bSpan);
+        }
         if (currentSeason === 's1' && showKoreanInline) {
           const kr = el('span', 'rune-kr-inline', `(${part})`);
           kr.setAttribute('translate', 'no');
@@ -192,21 +227,24 @@ window.RuneCenter = (() => {
     if (currentSeason === 's0') {
       return '台服 S0（白星 6★ 傳說）畢業與過渡配裝，對照 TMS S0 攻略與愛爾琳網採用排行。';
     }
+    if (currentS1Stage === 'early') {
+      if (job === '騎士' || job === '暗黑術士') {
+        return '台服尚未開放之 S1 新轉職（以下為韓服開季初期過渡參考，切「季末／終局」看後期實測）。';
+      }
+      return 'S1 開季／過渡視角：聚焦台服開季首 1～2 個月易入手傳說武器與覺醒三件套（盲眼預言者＋壓倒＋細膩）。';
+    }
     if (job === '騎士') {
-      return '韓服 S1 後期追加（2026/04/28 上線），已依後期 S1 資料覆核徽章與四部位配裝。';
+      return 'S1 季末／終局：依韓服 2026/05 實測採用率（波紋之刃 51.6%、遙遠的光、解決師＋蒼白閃光）覆核。';
     }
     if (job === '暗黑術士') {
-      return '韓服 S1 開季後追加，以下為實裝後玩家問卷整理，台服開放進度請對照官方公告。';
+      return 'S1 季末／終局：韓服實測與永恆缺陷混搭覆核，台服開放進度請依官方公告為準。';
     }
-    if (job === '舞者') {
-      return '韓服 S1 玩家問卷（2025/12–2026/01），已將同組技能改造併回 T0 並補上舊版過渡。';
-    }
-    return '韓服 S1 玩家問卷（2025/12–2026/01）與 S1 攻略覆核。';
+    return 'S1 季末／終局：依韓服 2026/04～05 遊戲內「冒險家意見系統」真實採用率普查與多來源攻略覆核。';
   }
 
   function buildQuadrantGrid(job, sharedSet) {
     const { el } = app;
-    const ds = getActiveSeason();
+    const ds = getActiveViewIndex();
     const jobData = ds.jobMap[job];
     if (!jobData) {
       const box = el('div', 'compare-summary');
@@ -247,7 +285,7 @@ window.RuneCenter = (() => {
         th.append(el('span', 'tier-sub', tier.sub));
 
         const td = el('td');
-        renderCellContent(td, slotTiers[tIdx], sharedSet);
+        renderCellContent(td, slotTiers[tIdx], sharedSet, job);
 
         row.append(th, td);
       });
@@ -259,9 +297,10 @@ window.RuneCenter = (() => {
   }
 
   function formatPlainTextBuild(job) {
-    const ds = getActiveSeason();
+    const ds = getActiveViewIndex();
     if (!ds.jobMap[job]) return `【瑪奇 Mobile ${currentSeason.toUpperCase()}｜${job}】此職業於 S1 才實裝。`;
-    const lines = [`【瑪奇 Mobile ${currentSeason.toUpperCase()} 符文指南｜${job}】`];
+    const stageTxt = currentSeason === 's1' ? (currentS1Stage === 'early' ? ' 開季過渡' : ' 季末終局') : '';
+    const lines = [`【瑪奇 Mobile ${currentSeason.toUpperCase()}${stageTxt} 符文指南｜${job}】`];
     for (const q of quadrants) {
       lines.push(`\n■ ${q.label}`);
       ds.jobMap[job][q.index].forEach((cell, idx) => {
@@ -276,7 +315,7 @@ window.RuneCenter = (() => {
 
   function renderPanel(job, family) {
     const { el, showToast, syncHash } = app;
-    const ds = getActiveSeason();
+    const ds = getActiveViewIndex();
     hideTooltip(true);
     panel.replaceChildren();
 
@@ -288,7 +327,9 @@ window.RuneCenter = (() => {
 
     const head = el('div', 'panel-head');
     const titleWrap = el('div');
-    const seasonTag = currentSeason === 's0' ? '（S0 白星 6★）' : '（S1 黃星 8★）';
+    const seasonTag = currentSeason === 's0'
+      ? '（S0 白星 6★）'
+      : currentS1Stage === 'early' ? '（S1 開季／過渡）' : '（S1 季末／終局）';
     titleWrap.append(el('h2', '', validCompare ? `${job} ⇄ ${validCompare} ${seasonTag}` : `${job} ${seasonTag}`));
     titleWrap.append(el('p', 'panel-meta', getJobMeta(job)));
 
@@ -365,6 +406,44 @@ window.RuneCenter = (() => {
 
     head.append(titleWrap, tools);
     panel.append(head);
+
+    if (hasMainData && currentSeason === 's1') {
+      const stageBar = el('div', 'stage-bar');
+      const sw = el('div', 'stage-switch');
+      sw.setAttribute('role', 'group');
+      sw.setAttribute('aria-label', '切換 S1 開季過渡或季末終局推薦');
+
+      const btnEarly = el('button', 'stage-btn', 'S1 開季／過渡');
+      btnEarly.type = 'button';
+      btnEarly.dataset.stage = 'early';
+      btnEarly.setAttribute('aria-pressed', String(currentS1Stage === 'early'));
+      btnEarly.onclick = () => setS1Stage('early');
+
+      const btnLate = el('button', 'stage-btn', 'S1 季末／終局');
+      btnLate.type = 'button';
+      btnLate.dataset.stage = 'late';
+      btnLate.setAttribute('aria-pressed', String(currentS1Stage === 'late'));
+      btnLate.onclick = () => setS1Stage('late');
+
+      sw.append(btnEarly, btnLate);
+
+      const hint = el('div', 'stage-hint');
+      if (currentS1Stage === 'early') {
+        hint.textContent = '目前顯示開季易入手傳說與覺醒三件套；切右側「季末／終局」可看韓服 2026/04–05 長線定裝。';
+      } else {
+        hint.append(
+          document.createTextNode('季末微標：'),
+          el('span', 'stage-badge is-up', '▲'),
+          document.createTextNode('升格　'),
+          el('span', 'stage-badge is-new', '★'),
+          document.createTextNode('新入榜／神話　'),
+          el('span', 'stage-badge is-down', '▼'),
+          document.createTextNode('退為過渡（懸停看原因）')
+        );
+      }
+      stageBar.append(sw, hint);
+      panel.append(stageBar);
+    }
 
     if (hasMainData) {
       panel.append(
@@ -696,8 +775,8 @@ window.RuneCenter = (() => {
     }
   }
 
-  // ===== 浮動效果提示窗（同時支援 S1 與 S0） =====
-  function fillTooltip(key, seasonKey) {
+  // ===== 浮動效果提示窗（同時支援 S1 與 S0，含 S1 季末演變說明） =====
+  function fillTooltip(key, seasonKey, diffNote = '') {
     const { el } = app;
     const targetSeason = seasonKey && seasonData[seasonKey] ? seasonKey : currentSeason;
     const ds = seasonData[targetSeason] || seasonData.s1;
@@ -739,6 +818,7 @@ window.RuneCenter = (() => {
     if (info.skill) tooltip.append(el('p', 'tt-skill', `對應技能：${info.skill}`));
     tooltip.append(el('p', 'tt-effect', info.effect));
     if (info.defect) tooltip.append(el('p', 'tt-defect', `缺陷副作用：${info.defect}`));
+    if (diffNote) tooltip.append(el('p', 'tt-stage-diff', `S1 季末演變：${diffNote}`));
     if (info.note) tooltip.append(el('p', 'tt-note', info.note));
 
     if (usage) {
@@ -795,7 +875,8 @@ window.RuneCenter = (() => {
   function showTooltip(chip, pin = false) {
     const key = chip.dataset.rune;
     const seasonKey = chip.dataset.season || 's1';
-    if (!fillTooltip(key, seasonKey)) return;
+    const diffNote = chip.dataset.diffNote || '';
+    if (!fillTooltip(key, seasonKey, diffNote)) return;
     if (activeChip && activeChip !== chip) activeChip.classList.remove('is-active');
     activeChip = chip;
     chip.classList.add('is-active');
@@ -962,6 +1043,7 @@ window.RuneCenter = (() => {
       const p = new URLSearchParams();
       p.set('tab', 'runes');
       if (currentSeason !== 's1') p.set('season', currentSeason);
+      if (currentSeason === 's1' && currentS1Stage === 'late') p.set('stage', 'late');
       if (currentSubMode === 'jobs') {
         if (currentJob) p.set('job', currentJob);
         if (currentJob && compareJob) p.set('cmp', compareJob);
@@ -976,6 +1058,8 @@ window.RuneCenter = (() => {
     applyHashParams(params) {
       const season = params.get('season');
       if (season === 's0' || season === 's1') setSeason(season, false);
+      const stage = params.get('stage');
+      currentS1Stage = stage === 'late' ? 'late' : 'early';
       const mode = params.get('mode');
       const job = params.get('job');
       const cmp = params.get('cmp');
