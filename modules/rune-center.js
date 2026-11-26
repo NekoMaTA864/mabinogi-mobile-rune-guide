@@ -294,6 +294,14 @@ window.RuneCenter = (() => {
 
     const tools = el('div', 'panel-tools');
 
+    if (window.ClassGuide) {
+      const growthBtn = el('button', 'tool-btn is-primary', `養成指南 →`);
+      growthBtn.type = 'button';
+      growthBtn.title = `查看「${job}」寶石雕琢、技能特化、刻印重設與等級卡建議`;
+      growthBtn.onclick = () => ClassGuide.openJob(job, true);
+      tools.append(growthBtn);
+    }
+
     if (hasMainData) {
       const cmpSelect = el('select', 'tool-select');
       cmpSelect.setAttribute('aria-label', '選擇另一職業進行並排比較');

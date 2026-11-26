@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-9">
+<link rel="stylesheet" href="styles.css?v=20261126-10">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -24,17 +24,20 @@
     <div class="header-top">
       <div>
         <h1>瑪奇 Mobile｜多功能工具站</h1>
-        <p class="header-desc">免登入純功能查詢站，整合台北時間即時排程、S1／S0 全職業符文與 10 格試配、以物易物與計算機、台韓版本未來視與中文社群工具箱。</p>
+        <p class="header-desc">免登入純功能查詢站，整合台北時間與愛麗莎紫洞排程、S1／S0 全職業符文與養成指南、以物易物與計算機、台韓版本未來視及中文社群工具箱。</p>
       </div>
       <button id="theme-toggle" class="tool-btn" type="button" aria-pressed="false">深色模式</button>
     </div>
 
     <nav class="primary-nav" role="tablist" aria-label="主功能分頁">
       <button class="primary-tab" role="tab" data-primary="schedule" aria-selected="true" type="button">
-        即時排程 <span class="tab-pill">台北時間</span>
+        即時排程 <span class="tab-pill">紫洞</span>
       </button>
       <button class="primary-tab" role="tab" data-primary="runes" aria-selected="false" type="button">
         符文中心 <span class="tab-pill">S1／S0</span>
+      </button>
+      <button class="primary-tab" role="tab" data-primary="growth" aria-selected="false" type="button">
+        職業養成 <span class="tab-pill">21 職</span>
       </button>
       <button class="primary-tab" role="tab" data-primary="economy" aria-selected="false" type="button">
         物資與計算 <span class="tab-pill">3 工具</span>
@@ -219,7 +222,21 @@
     </section>
   </section>
 
-  <!-- ===== 主分頁 3：物資與計算（以物易物快查 ＋ 寶石合成計算 ＋ 交易所德卡試算） ===== -->
+  <!-- ===== 主分頁 3：職業養成（寶石雕琢、技能特化、刻印重設、等級卡與進階可選項） ===== -->
+  <section id="tab-growth" hidden>
+    <details class="rules-collapse">
+      <summary class="rules-summary">
+        <span>全職業通用養成法則速查（寶石 E 乘區／30 等特化／刻印不重複原則／C 鍵等級卡重選）</span>
+        <span class="rules-toggle-hint">點擊展開／收合</span>
+      </summary>
+      <div id="growth-rules-grid" class="guide-grid" style="margin:12px 0 0;"></div>
+    </details>
+
+    <nav id="growth-jobs" class="jobs-nav" aria-label="依職系選擇職業檢視養成指南"></nav>
+    <section id="growth-panel" class="surface-box" aria-live="polite" hidden></section>
+  </section>
+
+  <!-- ===== 主分頁 4：物資與計算（以物易物快查 ＋ 寶石合成計算 ＋ 交易所德卡試算） ===== -->
   <section id="tab-economy" hidden>
     <div class="top-bar">
       <div class="mode-tabs" role="tablist" aria-label="物資與計算子功能">
@@ -509,24 +526,27 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-9"></script>
-<script src="data/runes-s0.js?v=20261126-9"></script>
-<script src="data/schedule.js?v=20261126-9"></script>
-<script src="data/tools-catalog.js?v=20261126-9"></script>
-<script src="data/barter.js?v=20261126-9"></script>
-<script src="data/roadmap.js?v=20261126-9"></script>
-<script src="modules/build-checker.js?v=20261126-9"></script>
-<script src="modules/rune-center.js?v=20261126-9"></script>
-<script src="modules/barter-finder.js?v=20261126-9"></script>
-<script src="modules/calculators.js?v=20261126-9"></script>
-<script src="modules/roadmap-view.js?v=20261126-9"></script>
-<script src="modules/timer-board.js?v=20261126-9"></script>
-<script src="modules/toolbox.js?v=20261126-9"></script>
+<script src="runes.js?v=20261126-10"></script>
+<script src="data/runes-s0.js?v=20261126-10"></script>
+<script src="data/class-guides.js?v=20261126-10"></script>
+<script src="data/schedule.js?v=20261126-10"></script>
+<script src="data/tools-catalog.js?v=20261126-10"></script>
+<script src="data/barter.js?v=20261126-10"></script>
+<script src="data/roadmap.js?v=20261126-10"></script>
+<script src="modules/build-checker.js?v=20261126-10"></script>
+<script src="modules/rune-center.js?v=20261126-10"></script>
+<script src="modules/class-guide.js?v=20261126-10"></script>
+<script src="modules/barter-finder.js?v=20261126-10"></script>
+<script src="modules/calculators.js?v=20261126-10"></script>
+<script src="modules/roadmap-view.js?v=20261126-10"></script>
+<script src="modules/timer-board.js?v=20261126-10"></script>
+<script src="modules/toolbox.js?v=20261126-10"></script>
 <script>
 (() => {
   const tabSections = {
     schedule: document.querySelector('#tab-schedule'),
     runes: document.querySelector('#tab-runes'),
+    growth: document.querySelector('#tab-growth'),
     economy: document.querySelector('#tab-economy'),
     roadmap: document.querySelector('#tab-roadmap'),
     toolbox: document.querySelector('#tab-toolbox')
@@ -594,6 +614,8 @@
     let params;
     if (currentPrimaryTab === 'runes') {
       params = RuneCenter.getHashParams();
+    } else if (currentPrimaryTab === 'growth') {
+      params = ClassGuide.getHashParams();
     } else if (currentPrimaryTab === 'schedule') {
       params = new URLSearchParams();
     } else if (currentPrimaryTab === 'economy') {
@@ -654,6 +676,9 @@
     } else if (tab === 'economy') {
       setPrimaryTab('economy', false);
       setEconSub(sub || 'barter', false);
+    } else if (tab === 'growth') {
+      setPrimaryTab('growth', false);
+      ClassGuide.applyHashParams(params);
     } else if (tab === 'roadmap' || tab === 'toolbox' || tab === 'schedule') {
       setPrimaryTab(tab, false);
     } else if (tab === 'runes' || hasRuneParams) {
@@ -666,6 +691,7 @@
 
   const appCtx = { el, showToast, syncHash, setPrimaryTab };
   RuneCenter.init(appCtx);
+  ClassGuide.init(appCtx);
   BarterFinder.init(appCtx);
   Calculators.init(appCtx);
   RoadmapView.init(appCtx);
