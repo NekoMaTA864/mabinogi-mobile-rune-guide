@@ -91,7 +91,7 @@ const s0RuneInfo = {
     status: "台服 S0 正式名",
     slot: "徽章",
     tierTag: "S0 6★ 傳說",
-    effect: "提升連擊流暢度與攻擊節奏（S1 上位為破碎的天空）。",
+    effect: "提升連擊流暢度與攻擊節奏（S1 上位為破碎天空）。",
     note: "連擊型職業過渡可用。"
   },
 
