@@ -52,7 +52,7 @@ window.RuneCenter = (() => {
 
   // DOM 節點
   let viewJobs, viewReverse, viewBuilder, viewGuide, panel, tooltip, quickSearch;
-  let catalogGrid, catalogCount, catalogSort, slotFiltersEl, traitFiltersEl, rwBody, rwSearch;
+  let catalogStageBar, catalogGrid, catalogCount, catalogSort, slotFiltersEl, traitFiltersEl, rwBody, rwSearch;
 
   // 狀態
   let currentSeason = 's1';
@@ -134,22 +134,73 @@ window.RuneCenter = (() => {
     }
   }
 
+  function buildStageBarContent(container, mode = 'panel') {
+    const { el } = app;
+    container.replaceChildren();
+
+    const sw = el('div', 'stage-switch');
+    sw.setAttribute('role', 'group');
+    sw.setAttribute('aria-label', '切換 S1 開季、S1 季末或 S0 賽季零配裝');
+
+    const opts = [
+      { season: 's1', stage: 'early', label: 'S1 開季／過渡', key: 's1-early' },
+      { season: 's1', stage: 'late', label: 'S1 季末／終局', key: 's1-late' },
+      { season: 's0', stage: null, label: 'S0 賽季零', key: 's0' }
+    ];
+    for (const opt of opts) {
+      const active = opt.season === 's0'
+        ? currentSeason === 's0'
+        : currentSeason === 's1' && currentS1Stage === opt.stage;
+      const btn = el('button', 'stage-btn', opt.label);
+      btn.type = 'button';
+      btn.dataset.seasonStage = opt.key;
+      btn.setAttribute('aria-pressed', String(active));
+      btn.onclick = () => setSeasonAndStage(opt.season, opt.stage);
+      sw.append(btn);
+    }
+
+    const hint = el('div', 'stage-hint');
+    if (currentSeason === 's0') {
+      hint.textContent = mode === 'catalog'
+        ? '目前檢視 S0（白星 6★ 傳說）符文圖鑑與採用職業；切左側可對照 S1 開季／季末。'
+        : '目前顯示台服 S0（白星 6★ 傳說）配裝；可直接切左側對照 S1 開季／季末。';
+    } else if (currentS1Stage === 'early') {
+      hint.textContent = mode === 'catalog'
+        ? '目前採用統計對齊「S1 開季／過渡」推薦表；切右側可對照 S1 季末或 S0 白星圖鑑。'
+        : '目前顯示開季易入手傳說與覺醒三件套；切右側可看韓服 2026/04–05 季末定裝或 S0 白星配裝。';
+    } else if (mode === 'catalog') {
+      hint.textContent = '目前採用統計對齊「S1 季末／終局」推薦表；點擊下方職業徽章會直接以季末階段開啟。';
+    } else {
+      hint.append(
+        document.createTextNode('季末微標：'),
+        el('span', 'stage-badge is-up', '▲'),
+        document.createTextNode('升格　'),
+        el('span', 'stage-badge is-new', '★'),
+        document.createTextNode('新入榜／神話　'),
+        el('span', 'stage-badge is-down', '▼'),
+        document.createTextNode('退為過渡（懸停看原因）')
+      );
+    }
+    container.append(sw, hint);
+  }
+
   function updateSeasonUI() {
-    document.querySelectorAll('.season-btn').forEach(btn => {
-      btn.setAttribute('aria-pressed', String(btn.dataset.season === currentSeason));
-    });
     // S0 時期無暗黑術士／騎士，按鈕以柔化提示但不鎖死（點進去會提示可一鍵切 S1）
     const ds = getActiveSeason();
     for (const [job, btn] of jobButtons.entries()) {
       const unavailable = !ds.jobMap[job];
       btn.classList.toggle('is-s1-only', unavailable);
     }
+    if (catalogStageBar) buildStageBarContent(catalogStageBar, 'catalog');
     renderSlotFilterCounts();
   }
 
-  function setSeason(season, updateHash = true) {
+  function setSeasonAndStage(season, stage = null, updateHash = true) {
     if (!seasonData[season]) return;
     currentSeason = season;
+    if (season === 's1' && (stage === 'early' || stage === 'late')) {
+      currentS1Stage = stage;
+    }
     hideTooltip(true);
     updateSeasonUI();
 
@@ -157,20 +208,17 @@ window.RuneCenter = (() => {
       renderPanel(currentJob, currentFamily);
     } else if (currentSubMode === 'reverse') {
       renderCatalog();
-    } else if (currentSubMode === 'builder' && season === 's0') {
-      app.showToast('10 格試配檢核器以 S1 機制為準，切換檢核時將使用 S1 符文池');
     }
     if (updateHash) app.syncHash();
   }
 
+  function setSeason(season, updateHash = true) {
+    setSeasonAndStage(season, null, updateHash);
+  }
+
   function setS1Stage(stage, updateHash = true) {
     if (stage !== 'early' && stage !== 'late') return;
-    currentS1Stage = stage;
-    hideTooltip(true);
-    if (currentSeason === 's1' && currentSubMode === 'jobs' && currentJob) {
-      renderPanel(currentJob, currentFamily);
-    }
-    if (updateHash) app.syncHash();
+    setSeasonAndStage('s1', stage, updateHash);
   }
 
   function renderCellContent(container, rawText, sharedSet, job) {
@@ -407,43 +455,9 @@ window.RuneCenter = (() => {
     head.append(titleWrap, tools);
     panel.append(head);
 
-    if (hasMainData && currentSeason === 's1') {
-      const stageBar = el('div', 'stage-bar');
-      const sw = el('div', 'stage-switch');
-      sw.setAttribute('role', 'group');
-      sw.setAttribute('aria-label', '切換 S1 開季過渡或季末終局推薦');
-
-      const btnEarly = el('button', 'stage-btn', 'S1 開季／過渡');
-      btnEarly.type = 'button';
-      btnEarly.dataset.stage = 'early';
-      btnEarly.setAttribute('aria-pressed', String(currentS1Stage === 'early'));
-      btnEarly.onclick = () => setS1Stage('early');
-
-      const btnLate = el('button', 'stage-btn', 'S1 季末／終局');
-      btnLate.type = 'button';
-      btnLate.dataset.stage = 'late';
-      btnLate.setAttribute('aria-pressed', String(currentS1Stage === 'late'));
-      btnLate.onclick = () => setS1Stage('late');
-
-      sw.append(btnEarly, btnLate);
-
-      const hint = el('div', 'stage-hint');
-      if (currentS1Stage === 'early') {
-        hint.textContent = '目前顯示開季易入手傳說與覺醒三件套；切右側「季末／終局」可看韓服 2026/04–05 長線定裝。';
-      } else {
-        hint.append(
-          document.createTextNode('季末微標：'),
-          el('span', 'stage-badge is-up', '▲'),
-          document.createTextNode('升格　'),
-          el('span', 'stage-badge is-new', '★'),
-          document.createTextNode('新入榜／神話　'),
-          el('span', 'stage-badge is-down', '▼'),
-          document.createTextNode('退為過渡（懸停看原因）')
-        );
-      }
-      stageBar.append(sw, hint);
-      panel.append(stageBar);
-    }
+    const stageBar = el('div', 'stage-bar');
+    buildStageBarContent(stageBar, 'panel');
+    panel.append(stageBar);
 
     if (hasMainData) {
       panel.append(
@@ -456,7 +470,7 @@ window.RuneCenter = (() => {
         )
       );
 
-      if (typeof CLASS_GROWTH_GUIDES !== 'undefined' && CLASS_GROWTH_GUIDES[job]) {
+      if (currentSeason === 's1' && typeof CLASS_GROWTH_GUIDES !== 'undefined' && CLASS_GROWTH_GUIDES[job]) {
         const g = CLASS_GROWTH_GUIDES[job];
         const bar = el('div', 'spec-banner');
         const info = el('div', 'spec-banner-text');
@@ -646,7 +660,7 @@ window.RuneCenter = (() => {
 
   function renderCatalog() {
     const { el } = app;
-    const ds = getActiveSeason();
+    const ds = getActiveViewIndex();
     const q = quickSearch.value.trim().toLowerCase();
     const matched = ds.keys.filter(key => {
       const info = ds.infoMap[key];
@@ -675,7 +689,9 @@ window.RuneCenter = (() => {
       matched.sort((a, b) => slotOrder[ds.infoMap[a].slot] - slotOrder[ds.infoMap[b].slot]);
     }
 
-    const sLabel = currentSeason === 's0' ? 'S0 白星 6★' : 'S1 黃星 8★';
+    const sLabel = currentSeason === 's0'
+      ? 'S0 白星 6★'
+      : currentS1Stage === 'early' ? 'S1 開季／過渡' : 'S1 季末／終局';
     catalogCount.textContent = `【${sLabel}】顯示 ${matched.length} / ${ds.keys.length} 顆符文（點擊下方職業徽章可直接跳轉該職配裝）`;
     catalogGrid.replaceChildren();
 
@@ -781,11 +797,13 @@ window.RuneCenter = (() => {
     }
   }
 
-  // ===== 浮動效果提示窗（同時支援 S1 與 S0，含 S1 季末演變說明） =====
+  // ===== 浮動效果提示窗（同時支援 S1 開季／季末 與 S0，含 S1 季末演變說明） =====
   function fillTooltip(key, seasonKey, diffNote = '') {
     const { el } = app;
     const targetSeason = seasonKey && seasonData[seasonKey] ? seasonKey : currentSeason;
-    const ds = seasonData[targetSeason] || seasonData.s1;
+    const ds = targetSeason === 's1'
+      ? (currentS1Stage === 'early' && seasonData.s1Early ? seasonData.s1Early : seasonData.s1)
+      : (seasonData[targetSeason] || seasonData.s1);
     const info = ds.infoMap[key];
     if (!info) return false;
     const aliases = targetSeason === 's1' ? (safeAliases[key] || []) : [];
@@ -954,9 +972,6 @@ window.RuneCenter = (() => {
     document.querySelectorAll('#tab-runes .mode-tab').forEach(btn => {
       btn.onclick = () => setSubMode(btn.dataset.mode);
     });
-    document.querySelectorAll('.season-btn').forEach(btn => {
-      btn.onclick = () => setSeason(btn.dataset.season);
-    });
 
     quickSearch.addEventListener('input', () => {
       if (quickSearch.value.trim() && currentSubMode !== 'reverse') {
@@ -998,6 +1013,7 @@ window.RuneCenter = (() => {
     panel = document.querySelector('#panel');
     tooltip = document.querySelector('#rune-tooltip');
     quickSearch = document.querySelector('#quick-search');
+    catalogStageBar = document.querySelector('#catalog-stage-bar');
     catalogGrid = document.querySelector('#catalog-grid');
     catalogCount = document.querySelector('#catalog-count');
     catalogSort = document.querySelector('#catalog-sort');
@@ -1069,10 +1085,9 @@ window.RuneCenter = (() => {
       return p;
     },
     applyHashParams(params) {
-      const season = params.get('season');
-      if (season === 's0' || season === 's1') setSeason(season, false);
-      const stage = params.get('stage');
-      currentS1Stage = stage === 'late' ? 'late' : 'early';
+      const season = params.get('season') === 's0' ? 's0' : 's1';
+      const stage = params.get('stage') === 'late' ? 'late' : 'early';
+      setSeasonAndStage(season, stage, false);
       const mode = params.get('mode');
       const job = params.get('job');
       const cmp = params.get('cmp');

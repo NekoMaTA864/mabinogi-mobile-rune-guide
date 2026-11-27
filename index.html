@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-22">
+<link rel="stylesheet" href="styles.css?v=20261126-23">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -121,10 +121,6 @@
       </div>
 
       <div class="rune-right-tools">
-        <div class="season-switch" role="group" aria-label="切換符文賽季">
-          <button class="season-btn" data-season="s1" aria-pressed="true" type="button">S1 賽季一</button>
-          <button class="season-btn" data-season="s0" aria-pressed="false" type="button">S0 賽季零</button>
-        </div>
         <div class="quick-search-wrap">
           <input id="quick-search" name="rune-search" autocomplete="off" class="search-input" type="search" placeholder="快搜符文名、別名或效果…" aria-label="快速搜尋符文">
         </div>
@@ -156,6 +152,7 @@
     </section>
 
     <section id="view-reverse" class="surface-box" hidden>
+      <div id="catalog-stage-bar" class="stage-bar"></div>
       <div class="filter-bar">
         <div class="filter-row" id="slot-filters" aria-label="依部位篩選"></div>
         <div class="filter-row" id="trait-filters" aria-label="依特性篩選"></div>
@@ -548,22 +545,22 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-22"></script>
-<script src="data/runes-s0.js?v=20261126-22"></script>
-<script src="data/class-guides.js?v=20261126-22"></script>
-<script src="data/s1-systems.js?v=20261126-22"></script>
-<script src="data/schedule.js?v=20261126-22"></script>
-<script src="data/tools-catalog.js?v=20261126-22"></script>
-<script src="data/barter.js?v=20261126-22"></script>
-<script src="data/roadmap.js?v=20261126-22"></script>
-<script src="modules/build-checker.js?v=20261126-22"></script>
-<script src="modules/rune-center.js?v=20261126-22"></script>
-<script src="modules/class-guide.js?v=20261126-22"></script>
-<script src="modules/barter-finder.js?v=20261126-22"></script>
-<script src="modules/calculators.js?v=20261126-22"></script>
-<script src="modules/roadmap-view.js?v=20261126-22"></script>
-<script src="modules/timer-board.js?v=20261126-22"></script>
-<script src="modules/toolbox.js?v=20261126-22"></script>
+<script src="runes.js?v=20261126-23"></script>
+<script src="data/runes-s0.js?v=20261126-23"></script>
+<script src="data/class-guides.js?v=20261126-23"></script>
+<script src="data/s1-systems.js?v=20261126-23"></script>
+<script src="data/schedule.js?v=20261126-23"></script>
+<script src="data/tools-catalog.js?v=20261126-23"></script>
+<script src="data/barter.js?v=20261126-23"></script>
+<script src="data/roadmap.js?v=20261126-23"></script>
+<script src="modules/build-checker.js?v=20261126-23"></script>
+<script src="modules/rune-center.js?v=20261126-23"></script>
+<script src="modules/class-guide.js?v=20261126-23"></script>
+<script src="modules/barter-finder.js?v=20261126-23"></script>
+<script src="modules/calculators.js?v=20261126-23"></script>
+<script src="modules/roadmap-view.js?v=20261126-23"></script>
+<script src="modules/timer-board.js?v=20261126-23"></script>
+<script src="modules/toolbox.js?v=20261126-23"></script>
 <script>
 (() => {
   const tabSections = {

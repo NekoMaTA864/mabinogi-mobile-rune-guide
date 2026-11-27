@@ -1457,6 +1457,7 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
 }
 .stage-switch {
   display: inline-flex;
+  flex-wrap: wrap;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 7px;
