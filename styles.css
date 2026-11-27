@@ -443,6 +443,11 @@ article.panel-box { padding: clamp(16px, 2.8vw, 26px); }
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-soft);
 }
+#panel .panel-head {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
 .panel-head h2 { margin: 0; font-size: clamp(20px, 2.8vw, 26px); }
 .panel-meta { margin: 4px 0 0; font-size: 13.5px; color: var(--muted); }
 .panel-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }

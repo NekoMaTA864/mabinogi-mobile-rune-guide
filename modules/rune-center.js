@@ -140,12 +140,12 @@ window.RuneCenter = (() => {
 
     const sw = el('div', 'stage-switch');
     sw.setAttribute('role', 'group');
-    sw.setAttribute('aria-label', '切換 S1 開季、S1 季末或 S0 賽季零配裝');
+    sw.setAttribute('aria-label', '切換 S0 賽季零、S1 開季或 S1 季末配裝');
 
     const opts = [
+      { season: 's0', stage: null, label: 'S0 賽季零', key: 's0' },
       { season: 's1', stage: 'early', label: 'S1 開季／過渡', key: 's1-early' },
-      { season: 's1', stage: 'late', label: 'S1 季末／終局', key: 's1-late' },
-      { season: 's0', stage: null, label: 'S0 賽季零', key: 's0' }
+      { season: 's1', stage: 'late', label: 'S1 季末／終局', key: 's1-late' }
     ];
     for (const opt of opts) {
       const active = opt.season === 's0'
@@ -162,12 +162,12 @@ window.RuneCenter = (() => {
     const hint = el('div', 'stage-hint');
     if (currentSeason === 's0') {
       hint.textContent = mode === 'catalog'
-        ? '目前檢視 S0（白星 6★ 傳說）符文圖鑑與採用職業；切左側可對照 S1 開季／季末。'
-        : '目前顯示台服 S0（白星 6★ 傳說）配裝；可直接切左側對照 S1 開季／季末。';
+        ? '目前檢視 S0（白星 6★ 傳說）符文圖鑑與採用職業；切右側可對照 S1 開季／季末。'
+        : '目前顯示台服 S0（白星 6★ 傳說）配裝；可直接切右側對照 S1 開季／季末。';
     } else if (currentS1Stage === 'early') {
       hint.textContent = mode === 'catalog'
-        ? '目前採用統計對齊「S1 開季／過渡」推薦表；切右側可對照 S1 季末或 S0 白星圖鑑。'
-        : '目前顯示開季易入手傳說與覺醒三件套；切右側可看韓服 2026/04–05 季末定裝或 S0 白星配裝。';
+        ? '目前採用統計對齊「S1 開季／過渡」推薦表；切左側可看 S0 白星圖鑑，切右側可對照 S1 季末。'
+        : '目前顯示開季易入手傳說與覺醒三件套；切左側可看 S0 白星配裝，切右側可看韓服 2026/04–05 季末定裝。';
     } else if (mode === 'catalog') {
       hint.textContent = '目前採用統計對齊「S1 季末／終局」推薦表；點擊下方職業徽章會直接以季末階段開啟。';
     } else {
