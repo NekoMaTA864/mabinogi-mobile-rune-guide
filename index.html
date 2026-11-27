@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-24">
+<link rel="stylesheet" href="styles.css?v=20261126-25">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -133,6 +133,7 @@
     </section>
 
     <section id="view-builder" class="surface-box" hidden>
+      <div id="builder-stage-bar" class="stage-bar"></div>
       <div class="builder-toolbar">
         <div class="builder-job-wrap">
           <label for="builder-job">試配職業（S1 機制）</label>
@@ -173,7 +174,7 @@
           <h3>白星（S0）與黃星（S1）換裝重點</h3>
           <ul>
             <li><strong>星級區分</strong>：S0 舊符文為白星（最高 6★ 傳說）；S1 新符文為黃星（2★ 高級～8★ 傳說／神話）。</li>
-            <li><strong>8★ 新機制</strong>：8★ 傳說符文起適用記憶刻印、超越刻印與符文之語；8★ 傳說飾品超越每階額外 +1.5% 最終傷害。</li>
+            <li><strong>8★ 新機制</strong>：8★ 傳說符文起適用記憶刻印與 8★ 飾品符文之語（台服 11/25 已實裝）；「超越刻印」為後續隨塔巴勒塔斯團本開放系統（屆時 8★ 傳說飾品每超越 1 階額外 +1.5% 最終傷害）。</li>
             <li><strong>過渡避坑</strong>：新版黃星 6★ 菁英數值常低於舊白星 6★ 傳說，尚未湊齊高星 S1 畢業裝前切勿盲拆舊傳說（如舊徽章「絢爛」可先沿用）。</li>
           </ul>
         </div>
@@ -182,15 +183,15 @@
           <ul>
             <li><strong>覺醒</strong>：8★ 徽章攻擊時機率觸發 20～35 秒爆發期（冷卻 90 秒）；防具「壓倒性力量」「細膩手法」在覺醒期間數值翻倍。</li>
             <li><strong>缺陷</strong>：高數值附帶負面效果（隱士+、角鬥士+、暴君、古代魔法師、古代守護者、近衛兵+、無法者、神殿騎士、執政官）；裝備神話防具「永恆」可消除全身所有缺陷並增傷 +15%。</li>
-            <li><strong>過載（團本唯一）</strong>：蒼白閃光、搖曳之火屬巨神碎片唯一系列，僅能生效 1 顆，依充能轉電力於覺醒或大招時爆發。</li>
+            <li><strong>過載（團本唯一・台服待開放）</strong>：蒼白閃光、搖曳之火屬塔巴勒塔斯團本「巨神碎片」唯一系列（韓服開季第 7 週推出，台服 11/25 尚未實裝），僅能生效 1 顆，依充能轉電力於覺醒或大招時爆發。</li>
             <li><strong>異常聯動</strong>：武器「烈焰」搭防具「野火」（灼燒＋暴率）、武器「結晶」搭防具「雪山」（冰凍＋追擊機率）。</li>
           </ul>
         </div>
         <div class="guide-card">
           <h3>S1 開季過渡 vs 季末終局演變</h3>
           <ul>
-            <li><strong>開季過渡（1～2 個月）</strong>：以「覺醒三件套（盲眼預言者＋壓倒＋細膩）」＋易入手傳說武器（劍舞+／角鬥士+／烈焰／遺忘+／霜風+）穩刷深淵與團本。</li>
-            <li><strong>季末終局（暴擊溢出轉向）</strong>：全身寶石刻印成型後暴擊易溢出，多數職業團本防具由「蒼白閃光」轉向「搖曳之火」（僅騎士因必帶解決者+反向選蒼白閃光）。</li>
+            <li><strong>開季過渡（台服 11/25 現況）</strong>：全部 262 顆台服 8★ 圖鑑符文（含秘術地下城神話）皆已實裝；開荒以「覺醒三件套（盲眼預言者＋壓倒＋細膩）」＋易入手傳說武器穩刷秘術與 12/2 巴里深淵。</li>
+            <li><strong>季末終局（塔巴勒塔斯後・暴擊溢出轉向）</strong>：後續團本開放且全身寶石成型後暴擊易溢出，多數職業團本防具由「蒼白閃光」轉向「搖曳之火」（僅騎士因必帶解決者+反向選蒼白閃光）。</li>
             <li><strong>神話與缺陷混搭</strong>：週年神話箱普及後，「永恆＋暴君／無法者」與「吞噬世界惡意／傾瀉之星／碎裂之光／暗影交織迴廊」成為長線頂配。</li>
             <li><strong>台服三大避坑防具</strong>：開季盡量避開投入資源在「地鳴」「沉默之山」「拚死+」（韓服季末「基本功」採用率亦已歸零）。</li>
           </ul>
@@ -545,22 +546,22 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-24"></script>
-<script src="data/runes-s0.js?v=20261126-24"></script>
-<script src="data/class-guides.js?v=20261126-24"></script>
-<script src="data/s1-systems.js?v=20261126-24"></script>
-<script src="data/schedule.js?v=20261126-24"></script>
-<script src="data/tools-catalog.js?v=20261126-24"></script>
-<script src="data/barter.js?v=20261126-24"></script>
-<script src="data/roadmap.js?v=20261126-24"></script>
-<script src="modules/build-checker.js?v=20261126-24"></script>
-<script src="modules/rune-center.js?v=20261126-24"></script>
-<script src="modules/class-guide.js?v=20261126-24"></script>
-<script src="modules/barter-finder.js?v=20261126-24"></script>
-<script src="modules/calculators.js?v=20261126-24"></script>
-<script src="modules/roadmap-view.js?v=20261126-24"></script>
-<script src="modules/timer-board.js?v=20261126-24"></script>
-<script src="modules/toolbox.js?v=20261126-24"></script>
+<script src="runes.js?v=20261126-25"></script>
+<script src="data/runes-s0.js?v=20261126-25"></script>
+<script src="data/class-guides.js?v=20261126-25"></script>
+<script src="data/s1-systems.js?v=20261126-25"></script>
+<script src="data/schedule.js?v=20261126-25"></script>
+<script src="data/tools-catalog.js?v=20261126-25"></script>
+<script src="data/barter.js?v=20261126-25"></script>
+<script src="data/roadmap.js?v=20261126-25"></script>
+<script src="modules/build-checker.js?v=20261126-25"></script>
+<script src="modules/rune-center.js?v=20261126-25"></script>
+<script src="modules/class-guide.js?v=20261126-25"></script>
+<script src="modules/barter-finder.js?v=20261126-25"></script>
+<script src="modules/calculators.js?v=20261126-25"></script>
+<script src="modules/roadmap-view.js?v=20261126-25"></script>
+<script src="modules/timer-board.js?v=20261126-25"></script>
+<script src="modules/toolbox.js?v=20261126-25"></script>
 <script>
 (() => {
   const tabSections = {

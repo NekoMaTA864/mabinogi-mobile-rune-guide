@@ -12,9 +12,11 @@ window.BuildChecker = (() => {
   let allJobs = [];
   let runePattern = null;
   let safeRunewords = [];
+  let getS1Stage = () => 'early';
+  let setS1Stage = () => {};
 
   // DOM 節點
-  let jobSelect, fillT0Btn, clearBtn, copyBtn, shareBtn;
+  let builderStageBar, jobSelect, fillT0Btn, clearBtn, copyBtn, shareBtn;
   let slotsGrid, reportBox, previewList;
 
   // 狀態：10 格（全部以韓文鍵存值，空字串代表未選）
@@ -35,9 +37,56 @@ window.BuildChecker = (() => {
     });
   }
 
+  function getActiveStageTable() {
+    const st = getS1Stage();
+    if (st === 'early' && typeof runesEarly !== 'undefined') return runesEarly;
+    return runes;
+  }
+
+  function getStageLabel() {
+    return getS1Stage() === 'early' ? 'S1 開季／過渡' : 'S1 季末／終局';
+  }
+
+  function renderStageBar() {
+    if (!builderStageBar || !app) return;
+    const { el } = app;
+    const st = getS1Stage();
+    builderStageBar.replaceChildren();
+
+    const sw = el('div', 'stage-switch');
+    sw.setAttribute('role', 'group');
+    sw.setAttribute('aria-label', '切換 10 格試配對照之 S1 階段');
+    const opts = [
+      { id: 'early', label: 'S1 開季／過渡（台服現況）' },
+      { id: 'late', label: 'S1 季末／終局（韓服後期）' }
+    ];
+    for (const opt of opts) {
+      const b = el('button', 'stage-btn', opt.label);
+      b.type = 'button';
+      b.dataset.builderStage = opt.id;
+      b.setAttribute('aria-pressed', String(st === opt.id));
+      b.onclick = () => {
+        setS1Stage(opt.id);
+        renderStageBar();
+        renderReport();
+      };
+      sw.append(b);
+    }
+
+    const hint = el(
+      'div',
+      'stage-hint',
+      st === 'early'
+        ? '「套用該職 T0 預設」與吻合度對照台服 11/25 開季已實裝符文（不含未開放團本防具）。'
+        : '「套用該職 T0 預設」與吻合度對照韓服 S1 季末定裝（含後續塔巴勒塔斯團本唯一防具）。'
+    );
+    builderStageBar.append(sw, hint);
+  }
+
   function extractTierKeys(job, slotIndex) {
     const res = [[], [], []];
-    const slotTiers = runes[job][slotIndex];
+    const tbl = getActiveStageTable();
+    const slotTiers = tbl[job][slotIndex];
     slotTiers.forEach((cell, idx) => {
       if (!cell) return;
       const mainOnly = cell.replace(/（[^）]*）/g, '');
@@ -69,12 +118,14 @@ window.BuildChecker = (() => {
     }
     state.accessories = [accPicked[0] || '', accPicked[1] || '', accPicked[2] || ''];
 
-    // 防具優先填滿 5 格，並自動避開團本唯一雙裝衝突
+    // 防具優先填滿 5 格，自動避開團本唯一雙裝衝突；開季模式對台服實裝職亦避開未實裝防具
+    const isEarlyTwJob = getS1Stage() === 'early' && state.job !== '騎士' && state.job !== '暗黑術士';
     const armPool = [...aTiers[0], ...aTiers[1], ...aTiers[2]];
     const armPicked = [];
     let hasRaidUnique = false;
     for (const k of armPool) {
       if (!runeInfo[k] || runeInfo[k].slot !== '防具' || armPicked.includes(k)) continue;
+      if (isEarlyTwJob && runeInfo[k].status !== '台服正式名') continue;
       if (RAID_UNIQUE_ARMORS.has(k)) {
         if (hasRaidUnique) continue;
         hasRaidUnique = true;
@@ -89,7 +140,7 @@ window.BuildChecker = (() => {
 
     render();
     app.syncHash();
-    app.showToast(`已帶入「${state.job}」建議參考配裝`);
+    app.showToast(`已帶入「${state.job}」${getStageLabel()} 建議參考配裝`);
   }
 
   function clearSlots() {
@@ -303,7 +354,16 @@ window.BuildChecker = (() => {
       });
     }
 
-    // 6. 職業推薦吻合度與飾品符文之語命中
+    // 6. 職業推薦吻合度、台服實裝提醒與飾品符文之語命中
+    const unreleasedChosen = [...new Set(allChosen.filter(k => runeInfo[k].status !== '台服正式名'))];
+    if (unreleasedChosen.length) {
+      alerts.push({
+        level: 'info',
+        title: `含 ${unreleasedChosen.length} 顆台服 11/25 尚未實裝之未來視符文`,
+        desc: `${unreleasedChosen.map(k => runeInfo[k].zh).join('、')} 目前尚未收錄於台服 8★ 圖鑑（屬後續塔巴勒塔斯團本或未開放職業），僅供未來視規劃參考。`
+      });
+    }
+
     const t0Set = new Set([
       ...extractTierKeys(state.job, 0)[0],
       ...extractTierKeys(state.job, 1)[0],
@@ -321,8 +381,8 @@ window.BuildChecker = (() => {
     const hitT12 = uniqAll.filter(k => !t0Set.has(k) && t12Set.has(k)).length;
     alerts.push({
       level: 'info',
-      title: `已填入 ${allChosen.length} / 10 格（符合「${state.job}」T0：${hitT0} 顆、T1／T2：${hitT12} 顆）`,
-      desc: '此統計僅對照本站韓服 S1 問卷推薦表，實戰仍可視手邊高星符文靈活混搭。'
+      title: `已填入 ${allChosen.length} / 10 格（符合「${state.job}・${getStageLabel()}」T0：${hitT0} 顆、T1／T2：${hitT12} 顆）`,
+      desc: `此統計對照「${getStageLabel()}」推薦表，實戰仍可視手邊高星符文靈活混搭。`
     });
 
     // 8★ 飾品符文之語對照
@@ -368,6 +428,7 @@ window.BuildChecker = (() => {
   }
 
   function render() {
+    renderStageBar();
     jobSelect.value = state.job;
     renderSlots();
     renderPreviewChips();
@@ -379,7 +440,10 @@ window.BuildChecker = (() => {
     allJobs = shared.allJobs;
     runePattern = shared.runePattern;
     safeRunewords = shared.safeRunewords;
+    if (shared.getS1Stage) getS1Stage = shared.getS1Stage;
+    if (shared.setS1Stage) setS1Stage = shared.setS1Stage;
 
+    builderStageBar = document.querySelector('#builder-stage-bar');
     jobSelect = document.querySelector('#builder-job');
     fillT0Btn = document.querySelector('#builder-fill-t0');
     clearBtn = document.querySelector('#builder-clear');
@@ -427,6 +491,10 @@ window.BuildChecker = (() => {
 
   return {
     init,
+    syncStageUI() {
+      renderStageBar();
+      renderReport();
+    },
     setJob(job) {
       if (allJobs.includes(job) && state.job !== job) {
         state.job = job;
@@ -436,6 +504,7 @@ window.BuildChecker = (() => {
     },
     getHashParams() {
       const p = new URLSearchParams();
+      if (getS1Stage() === 'late') p.set('stage', 'late');
       p.set('mode', 'builder');
       p.set('job', state.job);
       if (state.weapon) p.set('w', state.weapon);

@@ -208,6 +208,8 @@ window.RuneCenter = (() => {
       renderPanel(currentJob, currentFamily);
     } else if (currentSubMode === 'reverse') {
       renderCatalog();
+    } else if (currentSubMode === 'builder' && window.BuildChecker && BuildChecker.syncStageUI) {
+      BuildChecker.syncStageUI();
     }
     if (updateHash) app.syncHash();
   }
@@ -560,8 +562,9 @@ window.RuneCenter = (() => {
     viewGuide.hidden = mode !== 'guide';
     if (mode === 'reverse') renderCatalog();
     if (mode === 'guide') renderRunewords();
-    if (mode === 'builder' && currentJob && window.BuildChecker) {
-      BuildChecker.setJob(currentJob);
+    if (mode === 'builder' && window.BuildChecker) {
+      if (currentJob) BuildChecker.setJob(currentJob);
+      if (BuildChecker.syncStageUI) BuildChecker.syncStageUI();
     }
     if (updateHash) app.syncHash();
   }
@@ -1051,7 +1054,9 @@ window.RuneCenter = (() => {
         allJobs,
         runePattern: seasonData.s1.pattern,
         safeRunewords,
-        attachTooltipContainer
+        attachTooltipContainer,
+        getS1Stage: () => currentS1Stage,
+        setS1Stage: (st) => setS1Stage(st)
       });
     }
   }
