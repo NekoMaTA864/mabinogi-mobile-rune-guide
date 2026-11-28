@@ -103,12 +103,23 @@ window.TimerBoard = (() => {
     renderTick();
   }
 
+  function maintenanceCheckpoint(ms) {
+    const ph = SCHEDULE_CONFIG.purpleHole;
+    const local = getTaipeiParts(ms);
+    const daysSinceMaintenance = (local.day - ph.maintenanceDay + 7) % 7;
+    const checkpoint = taipeiToUtcMs(local.year, local.month,
+      local.date - daysSinceMaintenance, ph.maintenanceReminderHour);
+    return checkpoint > ms ? checkpoint - 7 * 24 * 60 * 60 * 1000 : checkpoint;
+  }
+
   // 計算紫洞（愛麗沙）目前狀態與接下來 3 場開啟時刻
   function computePurpleHole(nowMs) {
     const ph = SCHEDULE_CONFIG.purpleHole;
     const cycleMs = ph.cycleMins * 60 * 1000;
     const durMs = ph.durationMins * 60 * 1000;
     const preMs = ph.preAlertMins * 60 * 1000;
+    const anchorCheckpoint = maintenanceCheckpoint(phAnchorMs);
+    const needsCalibration = maintenanceCheckpoint(nowMs) > anchorCheckpoint;
 
     // 找出小於等於 nowMs 的最近一次開啟時間 prevStart
     const k = Math.floor((nowMs - phAnchorMs) / cycleMs);
@@ -140,16 +151,27 @@ window.TimerBoard = (() => {
         isPreAlert,
         value: formatDuration(remain),
         detail: isPreAlert
-          ? `預計 ${formatTaipeiShort(nextStart)} 開啟（遊戲內狩獵場已廣播預告，每次存在 15 分鐘）。`
+          ? `預計 ${formatTaipeiShort(nextStart)} 開啟，每次存在 15 分鐘。`
           : `週期 36 小時 15 分（存在 15 分鐘，不扣藍／紅洞次數）；停機維護後可於下方校準。`
       };
       upcoming = [nextStart, nextStart + cycleMs, nextStart + cycleMs * 2];
     }
 
+    if (needsCalibration) {
+      const wasActiveWindow = card.active;
+      card.status = '維護後待校準';
+      card.active = false;
+      card.isPreAlert = false;
+      card.value = wasActiveWindow ? '待校準' : `推估 ${card.value}`;
+      card.detail = '倒數沿用維護前的基準，實際時間可能已重置；請依遊戲內或回報站的實測開啟時間重新校準。';
+    }
+
     return {
       card,
       upcoming,
-      slotKey: `${phAnchorMs}_${upcoming[0]}`
+      needsCalibration,
+      crossesMaintenance: upcoming.map(ts => maintenanceCheckpoint(ts) > anchorCheckpoint),
+      slotKey: `${phAnchorMs}_${upcoming[0]}_${needsCalibration}`
     };
   }
 
@@ -206,27 +228,36 @@ window.TimerBoard = (() => {
       if (bossCard) break;
     }
 
-    // 3. 不詳的召喚結界（每日 06:00 起每逢整點出現，地面黑氣約 3 分鐘後召喚）
+    // 3. 不祥的召喚結界（整點出現，3 分鐘準備，7 分鐘戰鬥）
     const curHourStart = taipeiToUtcMs(t.year, t.month, t.date, t.hour, 0, 0);
     const prepEnd = curHourStart + cfg.summonBarrierPrepMins * 60 * 1000;
+    const fightEnd = prepEnd + cfg.summonBarrierFightMins * 60 * 1000;
     const nextHourStart = curHourStart + 3600 * 1000;
     let barrierCard;
     if (nowMs >= curHourStart && nowMs < prepEnd) {
       barrierCard = {
-        label: '不詳的召喚結界',
-        status: '黑氣出現中',
+        label: '不祥的召喚結界',
+        status: '準備',
         active: true,
         value: formatDuration(prepEnd - nowMs),
         detail: `${pad(t.hour)}:00 結界已於狩獵場現身，距離召喚石出怪約剩餘時間。`
       };
+    } else if (nowMs < fightEnd) {
+      barrierCard = {
+        label: '不祥的召喚結界',
+        status: '戰鬥中',
+        active: true,
+        value: formatDuration(fightEnd - nowMs),
+        detail: '怪物已召喚，倒數為距離結界消失的剩餘時間。'
+      };
     } else {
       const nextHr = (t.hour + 1) % 24;
       barrierCard = {
-        label: '不詳的召喚結界',
-        status: `下場 ${pad(nextHr)}:00`,
+        label: '不祥的召喚結界',
+        status: '已結束',
         active: false,
         value: formatDuration(nextHourStart - nowMs),
-        detail: '每日 06:00 起每隔 1 小時整點於狩獵場出現，約 3 分鐘後召喚怪物與首領。'
+        detail: `距離下一場 ${pad(nextHr)}:00 的剩餘時間。結界每小時整點出現。`
       };
     }
 
@@ -246,12 +277,17 @@ window.TimerBoard = (() => {
     phAnchorMetaEl.textContent = phIsCustom
       ? `目前基準（自訂校準・${ph.serverLabel}）：${formatTaipeiFull(phAnchorMs)}`
       : `目前基準（內建預設・${ph.serverLabel}）：${formatTaipeiFull(phAnchorMs)} · ${ph.defaultAnchorNote}`;
+    if (phState.needsCalibration) {
+      phAnchorMetaEl.textContent += '｜已跨過週三例行維護提醒時間，請用維護後的實測開啟時間校準。';
+    }
 
     phUpcomingEl.replaceChildren();
     phState.upcoming.forEach((ts, idx) => {
       const item = el('div', 'ph-slot');
+      const label = idx === 0 ? '下一場' : `第 ${idx + 1} 場`;
+      const warning = phState.crossesMaintenance[idx] ? '（跨維護，待校準）' : '';
       item.append(
-        el('span', 'ph-slot-idx', idx === 0 ? '下一場' : `第 ${idx + 1} 場`),
+        el('span', 'ph-slot-idx', label + warning),
         el('strong', 'ph-slot-time', formatTaipeiShort(ts))
       );
       phUpcomingEl.append(item);

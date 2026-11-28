@@ -189,10 +189,10 @@ window.ClassGuide = (() => {
     // ① 寶石雕琢
     const cGem = el('article', 'growth-card');
     cGem.append(
-      el('h3', '', '① 寶石雕琢（技能標籤優先級）'),
+      el('h3', '', '① 寶石雕琢（8 標籤 × 傷／冷 16 池）'),
       makeTagRow('T0 必留標籤', data.gemCarving.t0, 'is-t0'),
       makeTagRow('T1 次選標籤', data.gemCarving.t1, 'is-t1'),
-      makeTagRow('建議洗掉', data.gemCarving.avoid, 'is-avoid'),
+      makeTagRow('建議避雷洗掉', data.gemCarving.avoid, 'is-avoid'),
       el('p', 'growth-tip', data.gemCarving.tip)
     );
 
@@ -219,11 +219,12 @@ window.ClassGuide = (() => {
     // ③ 刻印重設
     const cEng = el('article', 'growth-card');
     cEng.append(
-      el('h3', '', '③ 刻印重設（裝備附加詞條選擇）'),
-      makeTagRow('武／飾 T0 畢業', data.engravingReset.offenseT0, 'is-t0'),
-      makeTagRow('武／飾 T1 可留', data.engravingReset.offenseT1, 'is-t1'),
-      makeTagRow('防具／徽章建議', data.engravingReset.defense, 'is-def'),
-      makeTagRow('建議避坑洗掉', data.engravingReset.avoid, 'is-avoid'),
+      el('h3', '', '③ 刻印重設（輸出 11 池／防禦 3 池）'),
+      el('p', 'rc-note', '史詩以上為雙條（同洗不可鎖行）；稀有／菁英為單條。'),
+      makeTagRow('輸出 T0（武飾／防徽第 2 條）', data.engravingReset.offenseT0, 'is-t0'),
+      makeTagRow('輸出 T1（武飾／防徽第 2 條）', data.engravingReset.offenseT1, 'is-t1'),
+      makeTagRow('防禦首選（防徽第 1 條・擇一）', data.engravingReset.defense, 'is-def'),
+      makeTagRow('輸出池建議洗掉', data.engravingReset.avoid, 'is-avoid'),
       el('p', 'growth-tip', data.engravingReset.tip)
     );
 

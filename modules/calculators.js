@@ -6,7 +6,7 @@ window.Calculators = (() => {
 
   // 寶石計算 DOM
   let gemFromEl, gemToEl, gemQtyEl, gemRatioEl, gemSummaryEl, gemStepsBody;
-  let prismQtyEl, prismLegacyEl, prismOutputEl;
+  let prismQtyEl, prismDarkstoneEl, prismQuartzEl, prismOutputEl;
 
   // 交易所計算 DOM
   let exPriceEl, exQtyEl, exCostEl, exFeeEl, exForwardOut;
@@ -78,17 +78,26 @@ window.Calculators = (() => {
   function renderPrismCalc() {
     const { el } = app;
     const targetPrism = clampInt(prismQtyEl.value, 1, 50, 1);
-    const legacyOwned = clampInt(prismLegacyEl.value, 0, 50, 0);
-    const netDirect = Math.max(0, targetPrism - legacyOwned);
+    const darkstoneOwned = clampInt(prismDarkstoneEl.value, 0, 50, 0);
+    const quartzOwned = clampInt(prismQuartzEl.value, 0, 50, 0);
+    const paired = Math.min(targetPrism, darkstoneOwned, quartzOwned);
+    const darkstoneOnly = Math.min(targetPrism - paired, darkstoneOwned - paired);
+    const quartzOnly = Math.min(targetPrism - paired - darkstoneOnly, quartzOwned - paired);
+    const direct = targetPrism - paired - darkstoneOnly - quartzOnly;
+    const colorsPerType = darkstoneOnly + direct;
+    const obsidianAndDiamond = quartzOnly + direct;
 
     prismOutputEl.replaceChildren();
     const list = el('div', 'calc-breakdown');
 
     const items = [
-      { label: '需直接合成顆數（扣除舊版暗光石／三重石英）', val: `${numFmt.format(netDirect)} 顆` },
-      { label: '單色有色寶石 S（需 3 種不同顏色，每色各）', val: `${numFmt.format(netDirect)} 顆（共 ${numFmt.format(netDirect * 3)} 顆）` },
-      { label: '粗糙的黑曜石 S', val: `${numFmt.format(netDirect)} 顆` },
-      { label: '粗糙的鑽石 S', val: `${numFmt.format(netDirect)} 顆` }
+      { label: '暗光石 S＋三重石英 S', val: `${paired} 次` },
+      { label: '暗光石 S＋三種不同有色寶石 S', val: `${darkstoneOnly} 次` },
+      { label: '三重石英 S＋黑曜石 S＋鑽石 S', val: `${quartzOnly} 次` },
+      { label: '三種不同有色寶石 S＋黑曜石 S＋鑽石 S', val: `${direct} 次` },
+      { label: '待備粗糙有色寶石 S（三種不同顏色，每色各）', val: `${colorsPerType} 顆（共 ${colorsPerType * 3} 顆）` },
+      { label: '待備粗糙的黑曜石 S', val: `${obsidianAndDiamond} 顆` },
+      { label: '待備粗糙的鑽石 S', val: `${obsidianAndDiamond} 顆` }
     ];
     for (const it of items) {
       const row = el('div', 'calc-line');
@@ -99,16 +108,25 @@ window.Calculators = (() => {
   }
 
   // ===== 3. 交易所德卡正算（售價 → 實領與淨利）=====
+  function readExchangeFee(input) {
+    return Math.round(clampNum(input.value, 0, 50, 15) * 2) / 2;
+  }
+
+  function exchangeSettlement(gross, feePct) {
+    // 費率以 0.5% 為一步，拆成每 200 德卡的整數費用與餘額。
+    const fee = Math.floor(gross / 200) * (feePct * 2) + Math.floor((gross % 200) * feePct / 100);
+    return { fee, net: gross - fee };
+  }
+
   function renderExchangeForward() {
     const { el } = app;
-    const price = clampNum(exPriceEl.value, 0, 999999999, 0);
+    const price = clampInt(exPriceEl.value, 0, 1999999998, 0);
     const qty = clampInt(exQtyEl.value, 1, 99999, 1);
-    const cost = clampNum(exCostEl.value, 0, 999999999, 0);
-    const feePct = clampNum(exFeeEl.value, 0, 50, 15);
+    const cost = clampInt(exCostEl.value, 0, 999999999, 0);
+    const feePct = readExchangeFee(exFeeEl);
 
     const gross = price * qty;
-    const fee = Math.round(gross * (feePct / 100));
-    const net = gross - fee;
+    const { fee, net } = exchangeSettlement(gross, feePct);
     const profit = net - cost;
     const margin = cost > 0 ? ((profit / cost) * 100).toFixed(1) : null;
 
@@ -141,13 +159,17 @@ window.Calculators = (() => {
   // ===== 4. 交易所德卡反推（目標實領 → 最低掛單價）=====
   function renderExchangeReverse() {
     const { el } = app;
-    const targetNet = clampNum(exTargetEl.value, 0, 999999999, 0);
-    const feePct = clampNum(exRevFeeEl.value, 0, 50, 15);
-    const keepRate = 1 - feePct / 100;
-
-    const minListPrice = keepRate > 0 ? Math.ceil(targetNet / keepRate) : 0;
-    const actualFee = Math.round(minListPrice * (feePct / 100));
-    const actualNet = minListPrice - actualFee;
+    const targetNet = clampInt(exTargetEl.value, 0, 999999999, 0);
+    const feePct = readExchangeFee(exRevFeeEl);
+    let minListPrice = targetNet;
+    // 費率最高 50%，兩倍目標一定能達標。以同一套結算二分搜尋第一個達標價。
+    let upper = targetNet * 2;
+    while (minListPrice < upper) {
+      const mid = Math.floor((minListPrice + upper) / 2);
+      if (exchangeSettlement(mid, feePct).net >= targetNet) upper = mid;
+      else minListPrice = mid + 1;
+    }
+    const { fee: actualFee, net: actualNet } = exchangeSettlement(minListPrice, feePct);
 
     exReverseOut.replaceChildren();
     const kpiRow = el('div', 'calc-kpi-grid');
@@ -171,7 +193,8 @@ window.Calculators = (() => {
     gemStepsBody = document.querySelector('#gem-steps-body');
 
     prismQtyEl = document.querySelector('#prism-qty');
-    prismLegacyEl = document.querySelector('#prism-legacy');
+    prismDarkstoneEl = document.querySelector('#prism-darkstone');
+    prismQuartzEl = document.querySelector('#prism-quartz');
     prismOutputEl = document.querySelector('#prism-output');
 
     exPriceEl = document.querySelector('#ex-price');
@@ -185,7 +208,7 @@ window.Calculators = (() => {
     exReverseOut = document.querySelector('#ex-reverse-out');
 
     [gemFromEl, gemToEl, gemQtyEl, gemRatioEl].forEach(el => el.addEventListener('input', renderGemTierCalc));
-    [prismQtyEl, prismLegacyEl].forEach(el => el.addEventListener('input', renderPrismCalc));
+    [prismQtyEl, prismDarkstoneEl, prismQuartzEl].forEach(el => el.addEventListener('input', renderPrismCalc));
     [exPriceEl, exQtyEl, exCostEl, exFeeEl].forEach(el => el.addEventListener('input', renderExchangeForward));
     [exTargetEl, exRevFeeEl].forEach(el => el.addEventListener('input', renderExchangeReverse));
 

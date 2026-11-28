@@ -979,8 +979,10 @@ window.RuneCenter = (() => {
     quickSearch.addEventListener('input', () => {
       if (quickSearch.value.trim() && currentSubMode !== 'reverse') {
         setSubMode('reverse', false);
+      } else if (currentSubMode === 'reverse') {
+        renderCatalog();
       }
-      if (currentSubMode === 'reverse') renderCatalog();
+      if (currentSubMode === 'reverse') app.syncHash();
     });
 
     catalogSort.onchange = renderCatalog;
@@ -1101,7 +1103,7 @@ window.RuneCenter = (() => {
         setSubMode('builder', false);
         BuildChecker.applyHashParams(params);
       } else if (mode === 'reverse') {
-        if (q) quickSearch.value = q;
+        quickSearch.value = q ?? '';
         setSubMode('reverse', false);
       } else if (mode === 'guide') {
         setSubMode('guide', false);

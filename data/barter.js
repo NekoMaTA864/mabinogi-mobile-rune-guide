@@ -5,6 +5,7 @@ const BARTER_DATA = [
   // ===== 提爾克納 =====
   {
     id: "tir-ferghus-iron",
+    needsScreenshot: true,
     town: "提爾克納",
     npc: "佛格斯（鐵匠鋪）",
     give: "分解的裝備零件",
@@ -20,10 +21,10 @@ const BARTER_DATA = [
     town: "提爾克納",
     npc: "佛格斯（鐵匠鋪）",
     give: "分解的裝備零件",
-    giveQty: 3,
+    giveQty: 1,
     get: "煤炭",
-    getQty: 1,
-    limit: "依遊戲內限購",
+    getQty: 3,
+    limit: "每日 10 次",
     category: "生活材料",
     note: "冶煉基礎燃料穩定補貨來源。"
   },
@@ -41,6 +42,7 @@ const BARTER_DATA = [
   },
   {
     id: "tir-deian-wool",
+    needsScreenshot: true,
     town: "提爾克納",
     npc: "迪恩（學校附近）",
     give: "寵物飼料",
@@ -76,16 +78,28 @@ const BARTER_DATA = [
     note: "薰衣草花直接換碎屑，快速銜接再燃燒催化劑。"
   },
   {
-    id: "tir-alissa-flour",
+    id: "tir-alissa-flour-egg",
     town: "提爾克納",
     npc: "愛麗沙",
-    give: "雞蛋（或薰衣草花 ×1）",
+    give: "雞蛋",
     giveQty: 3,
     get: "麵粉",
     getQty: 1,
     limit: "依遊戲內限購",
     category: "生活材料",
-    note: "料理與凱琳 3 級食材加工設計圖的前置素材。"
+    note: "替代路線：也可另用薰衣草花 ×1 兌換；料理與凱琳 3 級食材加工設計圖的前置素材。"
+  },
+  {
+    id: "tir-alissa-flour-lavender",
+    town: "提爾克納",
+    npc: "愛麗沙",
+    give: "薰衣草花",
+    giveQty: 1,
+    get: "麵粉",
+    getQty: 1,
+    limit: "依遊戲內限購",
+    category: "生活材料",
+    note: "替代路線：也可另用雞蛋 ×3 兌換；料理與凱琳 3 級食材加工設計圖的前置素材。"
   },
   {
     id: "tir-ranald-crit",
@@ -100,16 +114,28 @@ const BARTER_DATA = [
     note: "團本／高難深淵爆發必備消耗品。"
   },
   {
-    id: "tir-lasa-cat-hi",
+    id: "tir-lasa-cat-hi-juice",
     town: "提爾克納",
     npc: "麗莎（學校）",
-    give: "蘋果汁 ×3＋煉金術碎屑 ×3",
+    give: "蘋果汁",
+    giveQty: 1,
+    get: "高級鍊金術再燃燒催化劑",
+    getQty: 1,
+    limit: "每日 1 次（伺服器共用）",
+    category: "催化劑與聖水",
+    note: "替代路線：也可另用鍊金術碎屑兌換。"
+  },
+  {
+    id: "tir-lasa-cat-hi-fragments",
+    town: "提爾克納",
+    npc: "麗莎（學校）",
+    give: "鍊金術碎屑",
     giveQty: 3,
     get: "高級鍊金術再燃燒催化劑",
     getQty: 1,
-    limit: "依遊戲內限購",
+    limit: "每日 1 次（伺服器共用）",
     category: "催化劑與聖水",
-    note: "稀缺突破與強化催化劑的重要穩定來源。"
+    note: "替代路線：也可另用蘋果汁兌換。"
   },
   {
     id: "tir-lasa-cat-rare",
@@ -137,6 +163,7 @@ const BARTER_DATA = [
   },
   {
     id: "tir-caitin-bread",
+    needsScreenshot: true,
     town: "提爾克納",
     npc: "凱琳",
     give: "牛奶",
@@ -235,6 +262,7 @@ const BARTER_DATA = [
   },
   {
     id: "dun-walter-leather",
+    needsScreenshot: true,
     town: "杜巴頓",
     npc: "瓦爾特（雜貨店）",
     give: "特蕾西的原木音樂盒",
@@ -257,18 +285,18 @@ const BARTER_DATA = [
     category: "戰鬥消耗品",
     note: "釣魚產物轉愛心幣途徑。"
   },
-  {
-    id: "dun-walter-grenade",
+  ...["火焰", "閃電", "風", "酸蝕"].map((element, index) => ({
+    id: `dun-walter-grenade-${index + 1}`,
     town: "杜巴頓",
     npc: "瓦爾特（雜貨店）",
     give: "暗影幽靈魚",
     giveQty: 5,
-    get: "火焰／閃電／風／酸蝕魔法榴彈",
+    get: `${element}魔法榴彈`,
     getQty: 1,
-    limit: "依遊戲內限購",
+    limit: "每日 3 次",
     category: "戰鬥消耗品",
     note: "四屬性戰鬥道具，適合補異常或破防機制。"
-  },
+  })),
   {
     id: "dun-glennis-tea",
     town: "杜巴頓",

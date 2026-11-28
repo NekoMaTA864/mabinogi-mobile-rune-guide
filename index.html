@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261126-25">
+<link rel="stylesheet" href="styles.css?v=20261129-28">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
@@ -391,20 +391,24 @@
         </article>
 
         <article class="calc-card">
-          <h3>粗糙的星光稜晶 S 直合試算</h3>
-          <p class="calc-card-sub">9/9 改版後免去繁瑣中間公式：3 種不同單色有色寶石 S＋粗糙的黑曜石 S＋粗糙的鑽石 S 直接合成 1 顆。</p>
+          <h3>粗糙的星光稜晶 S 合成試算</h3>
+          <p class="calc-card-sub">依 9/9 更新配方，先配對持有的暗光石 S 與三重石英 S，再替剩餘的舊料補齊材料。</p>
           <div class="calc-form-grid">
             <div class="calc-field">
               <label for="prism-qty">目標「星光稜晶 S」顆數</label>
               <input id="prism-qty" name="prism-qty" type="number" inputmode="numeric" min="1" max="50" value="3">
             </div>
             <div class="calc-field">
-              <label for="prism-legacy">扣除舊版暗光石／三重石英（選填）</label>
-              <input id="prism-legacy" name="prism-legacy" type="number" inputmode="numeric" min="0" max="50" value="0">
+              <label for="prism-darkstone">持有粗糙的暗光石 S</label>
+              <input id="prism-darkstone" name="prism-darkstone" type="number" inputmode="numeric" min="0" max="50" value="0">
+            </div>
+            <div class="calc-field">
+              <label for="prism-quartz">持有粗糙的三重石英 S</label>
+              <input id="prism-quartz" name="prism-quartz" type="number" inputmode="numeric" min="0" max="50" value="0">
             </div>
           </div>
           <div id="prism-output"></div>
-          <p class="calc-note">註：若還留有改版前的「粗糙的暗光石」或「粗糙的三重石英」，仍可於寶石鍊金介面搭配對應材料直轉星光稜晶。</p>
+          <p class="calc-note">試算只計入上方填寫的舊料庫存。七種單色粗糙 S 寶石可作為粗糙的星光稜晶 S 合成材料，無法直接晉階。無 S 後綴的舊料適用一般粗糙星光稜晶配方。</p>
         </article>
       </div>
     </section>
@@ -425,7 +429,7 @@
           <div class="calc-form-grid">
             <div class="calc-field">
               <label for="ex-price">上架單價（德卡）</label>
-              <input id="ex-price" name="ex-price" type="number" inputmode="numeric" min="0" value="100">
+              <input id="ex-price" name="ex-price" type="number" inputmode="numeric" min="0" max="1999999998" value="100">
             </div>
             <div class="calc-field">
               <label for="ex-qty">販售數量</label>
@@ -441,7 +445,7 @@
             </div>
           </div>
           <div id="ex-forward-out"></div>
-          <p class="calc-note">小數點四捨五入或進位規則以遊戲內信箱結算畫面為準。</p>
+          <p class="calc-note">手續費依總成交額計算，小數無條件捨去。</p>
         </article>
 
         <article class="calc-card">
@@ -546,22 +550,22 @@
 <div id="rune-tooltip" class="rune-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="runes.js?v=20261126-25"></script>
-<script src="data/runes-s0.js?v=20261126-25"></script>
-<script src="data/class-guides.js?v=20261126-25"></script>
-<script src="data/s1-systems.js?v=20261126-25"></script>
-<script src="data/schedule.js?v=20261126-25"></script>
-<script src="data/tools-catalog.js?v=20261126-25"></script>
-<script src="data/barter.js?v=20261126-25"></script>
-<script src="data/roadmap.js?v=20261126-25"></script>
-<script src="modules/build-checker.js?v=20261126-25"></script>
-<script src="modules/rune-center.js?v=20261126-25"></script>
-<script src="modules/class-guide.js?v=20261126-25"></script>
-<script src="modules/barter-finder.js?v=20261126-25"></script>
-<script src="modules/calculators.js?v=20261126-25"></script>
-<script src="modules/roadmap-view.js?v=20261126-25"></script>
-<script src="modules/timer-board.js?v=20261126-25"></script>
-<script src="modules/toolbox.js?v=20261126-25"></script>
+<script src="runes.js?v=20261129-28"></script>
+<script src="data/runes-s0.js?v=20261129-28"></script>
+<script src="data/class-guides.js?v=20261129-28"></script>
+<script src="data/s1-systems.js?v=20261129-28"></script>
+<script src="data/schedule.js?v=20261129-28"></script>
+<script src="data/tools-catalog.js?v=20261129-28"></script>
+<script src="data/barter.js?v=20261129-28"></script>
+<script src="data/roadmap.js?v=20261129-28"></script>
+<script src="modules/build-checker.js?v=20261129-28"></script>
+<script src="modules/rune-center.js?v=20261129-28"></script>
+<script src="modules/class-guide.js?v=20261129-28"></script>
+<script src="modules/barter-finder.js?v=20261129-28"></script>
+<script src="modules/calculators.js?v=20261129-28"></script>
+<script src="modules/roadmap-view.js?v=20261129-28"></script>
+<script src="modules/timer-board.js?v=20261129-28"></script>
+<script src="modules/toolbox.js?v=20261129-28"></script>
 <script>
 (() => {
   const tabSections = {
@@ -659,8 +663,10 @@
     currentPrimaryTab = tab;
     RuneCenter.hideTooltip(true);
 
-    document.querySelectorAll('.primary-tab').forEach(btn => {
-      btn.setAttribute('aria-selected', String(btn.dataset.primary === tab));
+    primaryTabs.forEach(btn => {
+      const selected = btn.dataset.primary === tab;
+      btn.setAttribute('aria-selected', String(selected));
+      btn.tabIndex = selected ? 0 : -1;
     });
     for (const [key, sec] of Object.entries(tabSections)) {
       sec.hidden = key !== tab;
@@ -672,8 +678,34 @@
     if (updateHash) syncHash();
   }
 
-  document.querySelectorAll('.primary-tab').forEach(btn => {
+  const primaryTabs = [...document.querySelectorAll('.primary-tab')];
+  primaryTabs.forEach((btn, index) => {
+    const section = tabSections[btn.dataset.primary];
+    btn.id = `primary-${btn.dataset.primary}`;
+    btn.setAttribute('aria-controls', section.id);
+    section.setAttribute('role', 'tabpanel');
+    section.setAttribute('aria-labelledby', btn.id);
+    section.tabIndex = -1;
     btn.onclick = () => setPrimaryTab(btn.dataset.primary);
+    btn.addEventListener('keydown', event => {
+      const last = primaryTabs.length - 1;
+      const offsets = { ArrowLeft: -1, ArrowRight: 1 };
+      const offset = offsets[event.key];
+      let next;
+      if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = last;
+      else if (offset) next = (index + offset + primaryTabs.length) % primaryTabs.length;
+      else return;
+      event.preventDefault();
+      const target = primaryTabs[next];
+      setPrimaryTab(target.dataset.primary);
+      target.focus();
+    });
+  });
+
+  document.querySelector('.skip-link').addEventListener('click', event => {
+    event.preventDefault();
+    tabSections[currentPrimaryTab].focus();
   });
 
   function restoreFromHash() {

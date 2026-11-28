@@ -8,6 +8,7 @@ const SCHEDULE_CONFIG = {
   fieldBossPreEntryMins: 10, // 出現前 10 分鐘開放預先入場
   fieldBossDurationMins: 30, // 出現後持續 30 分鐘
   summonBarrierPrepMins: 3, // 每小時整點出現，地面黑氣約 3 分鐘後召喚
+  summonBarrierFightMins: 7, // 怪物召喚後 7 分鐘結界消失
 
   // 紫洞（深淵黑色坑洞）週期設定：預設記錄愛麗莎（台服）實測基準
   purpleHole: {
@@ -16,7 +17,9 @@ const SCHEDULE_CONFIG = {
     defaultAnchorNote: "MMD／星月酒館實測基準（停機維護後可自行校準）",
     cycleMins: 36 * 60 + 15, // 36 小時 15 分鐘（2175 分）
     durationMins: 15, // 出現後持續 15 分鐘
-    preAlertMins: 60 // 出現前 1 小時狩獵場廣播預告
+    preAlertMins: 60, // 出現前 1 小時狩獵場廣播預告
+    maintenanceDay: 3, // 以台北時間週三 06:00 作為例行維護提醒的判斷點
+    maintenanceReminderHour: 6
   },
 
   // 週幾地下城（索引對應 JS getDay()：0=日, 1=一 ... 6=六）

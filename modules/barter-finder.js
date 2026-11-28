@@ -17,18 +17,19 @@ window.BarterFinder = (() => {
   ];
 
   const numFmt = new Intl.NumberFormat('zh-Hant');
+  const normalizeQuery = text => text.toLowerCase().replace(/煉/g, '鍊');
 
   function renderTable() {
     const { el } = app;
-    const q = searchInput.value.trim().toLowerCase();
+    const q = normalizeQuery(searchInput.value.trim());
     const list = BARTER_DATA.filter(item => {
       if (activeTown !== '全部' && item.town !== activeTown) return false;
       if (activeCat !== '全部' && item.category !== activeCat) return false;
       if (!q) return true;
-      if (direction === 'give') return item.give.toLowerCase().includes(q);
-      if (direction === 'get') return item.get.toLowerCase().includes(q);
-      return [item.town, item.npc, item.give, item.get, item.category, item.note]
-        .join(' ').toLowerCase().includes(q);
+      if (direction === 'give') return normalizeQuery(item.give).includes(q);
+      if (direction === 'get') return normalizeQuery(item.get).includes(q);
+      return normalizeQuery([item.town, item.npc, item.give, item.get, item.category, item.note]
+        .join(' ')).includes(q);
     });
 
     countEl.textContent = `符合 ${list.length} / ${BARTER_DATA.length} 條常用交換路線（更多冷門城鎮路線可點右側開啟完整外部手冊）`;
@@ -48,11 +49,12 @@ window.BarterFinder = (() => {
       const locTd = el('td');
       locTd.append(el('strong', '', item.town), el('div', 'cell-sub', item.npc));
 
-      const giveTd = el('td', '', `${item.give} × ${item.giveQty}`);
+      const giveTd = el('td', '', item.needsScreenshot ? item.give : `${item.give} × ${item.giveQty}`);
       const getTd = el('td');
-      getTd.append(el('strong', '', `${item.get} × ${item.getQty}`), el('div', 'cell-sub', item.category));
+      const product = item.needsScreenshot ? item.get : `${item.get} × ${item.getQty}`;
+      getTd.append(el('strong', '', product), el('div', 'cell-sub', item.category));
 
-      const limTd = el('td', '', item.limit);
+      const limTd = el('td', '', item.needsScreenshot ? '數量與限購待實機確認' : item.limit);
       const noteTd = el('td', 'note-text', item.note);
       tr.append(locTd, giveTd, getTd, limTd, noteTd);
     }
